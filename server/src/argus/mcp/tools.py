@@ -487,6 +487,75 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline
         return json.dumps(result, indent=2)
 
     @mcp.tool()
+    async def responsive_audit(url: str | None = None) -> list[TextContent | ImageContent]:
+        """Capture screenshots at mobile, tablet, and desktop breakpoints.
+
+        Automatically resizes the browser to 3 viewports, captures a screenshot
+        at each, and returns all 3 with metadata. Great for checking responsive layouts.
+
+        Standard breakpoints:
+          - Mobile:  375 x 812  (iPhone 14)
+          - Tablet:  768 x 1024 (iPad)
+          - Desktop: 1440 x 900
+
+        Args:
+            url: Optional URL to navigate to first. If omitted, captures the current page.
+        """
+        results: list[TextContent | ImageContent] = []
+        breakpoints = [
+            {"name": "mobile", "width": 375, "height": 812, "device": "iPhone 14"},
+            {"name": "tablet", "width": 768, "height": 1024, "device": "iPad"},
+            {"name": "desktop", "width": 1440, "height": 900, "device": "Desktop"},
+        ]
+
+        # Navigate first if URL provided
+        if url:
+            nav_id = command_queue.enqueue("navigate", {"url": url})
+            await command_queue.wait_for_result(nav_id, timeout=10.0)
+            # Wait for page to settle
+            import asyncio
+            await asyncio.sleep(2.0)
+
+        captures = []
+        for bp in breakpoints:
+            cmd_id = command_queue.enqueue("capture_viewport", {"width": bp["width"], "height": bp["height"]})
+            result = await command_queue.wait_for_result(cmd_id, timeout=20.0)
+            captures.append((bp, result))
+
+        # Build response
+        summary_items = []
+        for bp, result in captures:
+            if result.get("success"):
+                screenshot_data = result.get("result", {}).get("screenshot")
+                bp_url = result.get("result", {}).get("url", "")
+                summary_items.append({
+                    "breakpoint": bp["name"],
+                    "device": bp["device"],
+                    "viewport": f"{bp['width']}x{bp['height']}",
+                    "url": bp_url,
+                    "captured": True,
+                })
+                if screenshot_data:
+                    results.append(TextContent(type="text", text=f"--- {bp['device']} ({bp['width']}x{bp['height']}) ---"))
+                    results.append(ImageContent(type="image", data=screenshot_data, mimeType="image/jpeg"))
+            else:
+                summary_items.append({
+                    "breakpoint": bp["name"],
+                    "device": bp["device"],
+                    "viewport": f"{bp['width']}x{bp['height']}",
+                    "captured": False,
+                    "error": result.get("error", "Unknown error"),
+                })
+
+        # Prepend summary
+        results.insert(0, TextContent(type="text", text=json.dumps({
+            "audit": "responsive",
+            "breakpoints": summary_items,
+        }, indent=2)))
+
+        return results
+
+    @mcp.tool()
     async def get_accessibility_issues(selector: str | None = None) -> str:
         """Run accessibility audit on the current page or a specific element.
 
