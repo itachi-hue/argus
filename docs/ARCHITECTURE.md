@@ -74,12 +74,12 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 │  │  HTTP Server │         │  MCP Server (stdio)    │        │
 │  │  (FastAPI)   │         │                        │        │
 │  │              │         │  Tools:                │        │
-│  │  /ingest/*   │────────►│  32 MCP Tools:         │        │
+│  │  /ingest/*   │────────►│  31 MCP Tools:         │        │
 │  │  /health     │  write  │  - 10 observation      │        │
-│  │  /commands/* │         │  - 10 browser actions  │        │
+│  │  /commands/* │         │  - 8 browser actions   │        │
 │  └──────────────┘         │  - 2 framework inspect │        │
 │                           │  - 4 visual regression │        │
-│                           │  - 6 advanced          │        │
+│                           │  - 7 advanced          │        │
 │         │                 │                        │        │
 │         ▼                 │  Command Queue:        │        │
 │  ┌──────────────┐         │  agent→server→ext→page │        │
@@ -261,9 +261,7 @@ Agent calls click_element("#submit-btn")
 | `highlight` | Isolated | Add colored outline to element |
 | `wait_for` | Isolated | MutationObserver-based wait for element appearance |
 | `fill_form` | Isolated | Fill multiple form fields at once |
-| `select_option` | Isolated | Select option in `<select>` by value or text |
-| `press_key` | Isolated | Dispatch keyboard events (Enter, Escape, Tab, arrows) |
-| `take_screenshot` | — | Force-capture a fresh screenshot on demand |
+| `capture_viewport` | — | Resize window, capture screenshot, restore |
 | `get_perf` | MAIN | Read `performance` API + `performance.memory` |
 | `get_storage` | MAIN | Read localStorage / sessionStorage |
 | `get_cookies` | — | `chrome.cookies.getAll` |
@@ -316,6 +314,18 @@ Agent calls compare_with_baseline("before-fix")
 ```
 
 All computation server-side via Pillow. No extension involvement.
+
+### 5.9 Responsive Audit
+
+```
+Agent calls responsive_audit()
+→ MCP tool enqueues 3 capture_viewport commands sequentially:
+    Mobile:  375×812  (iPhone 14)
+    Tablet:  768×1024 (iPad)
+    Desktop: 1440×900
+→ Extension resizes window, captures screenshot, restores for each
+→ Returns: 3 screenshots + metadata summary
+```
 
 ---
 

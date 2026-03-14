@@ -72,7 +72,6 @@ def main() -> None:
 
     # Log connection info to stderr (stdout is reserved for MCP stdio)
     print(f"Argus HTTP server: http://{settings.host}:{settings.port}", file=sys.stderr)
-    print(f"Extension pairing: http://{settings.host}:{settings.port}/pair", file=sys.stderr)
     print(f"Transport: {transport}", file=sys.stderr)
     if use_sse:
         print(f"MCP SSE endpoint: http://{settings.host}:{settings.port}/mcp/sse", file=sys.stderr)

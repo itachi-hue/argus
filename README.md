@@ -12,7 +12,7 @@
   <a href="https://github.com/itachi-hue/argus/actions/workflows/test.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/test.yml/badge.svg" alt="Tests" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/lint.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/lint.yml/badge.svg" alt="Lint" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/build.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-BSL_1.1-orange.svg" alt="BSL 1.1" /></a>
   <img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+" />
   <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible" />
 </p>
@@ -128,43 +128,9 @@ npm run build
 
 ### 4. Pair Extension to Server
 
-Three ways to connect (pick whichever is easiest):
+Click the Argus extension icon → **Connect to Server** → enter the 4-digit code from your terminal. Done.
 
-<details>
-<summary><strong>Option A — Web pairing page (recommended)</strong></summary>
-
-Open **[http://127.0.0.1:42777/pair](http://127.0.0.1:42777/pair)** in your browser.
-
-The page shows your auth token with a **Copy to Clipboard** button. Copy it, click the Argus extension icon, then click **Paste Token from Clipboard**. Done.
-
-This works even when Cursor or Claude Code spawned the server — no logs to find.
-</details>
-
-<details>
-<summary><strong>Option B — CLI (if you have a terminal open)</strong></summary>
-
-```bash
-cd server
-python -m argus token    # prints token and copies to clipboard
-```
-
-Then click **Paste Token from Clipboard** in the extension popup.
-</details>
-
-<details>
-<summary><strong>Option C — 4-digit pairing code</strong></summary>
-
-1. Click the Argus extension icon → **Connect to Server**
-2. The server prints a 4-digit code to stderr:
-   ```
-   🔗 Extension pairing code:  4821
-      Enter this code in the extension popup to connect.
-      Expires in 2 minutes.
-   ```
-3. Type the code in the popup → done
-
-> **Note:** If Cursor/Claude Code spawned the server, stderr goes to the editor's MCP logs. Use Option A or B instead.
-</details>
+Alternatives: **Paste Token from Clipboard** or enter manually via **Manual setup**.
 
 ### 5. Use It
 
@@ -178,7 +144,7 @@ Open your web app in Chrome and talk to your agent:
 - *"Run an accessibility audit on the page"*
 - *"Check the performance metrics — is LCP too slow?"*
 
-## MCP Tools (32)
+## MCP Tools (31)
 
 ### Observation (10 tools)
 
@@ -195,14 +161,12 @@ Open your web app in Chrome and talk to your agent:
 | `get_error_source_context` | Parse stack trace to file:line:column with workspace path mapping |
 | `clear_context` | Clear stored context |
 
-### Browser Actions (10 tools)
+### Browser Actions (8 tools)
 
 | Tool | What it does |
 |------|-------------|
 | `click_element` | Click any element by CSS selector |
 | `type_text` | Type into input fields (React/Vue compatible) |
-| `press_key` | Send keyboard events (Enter, Escape, Tab, arrows, with modifiers) |
-| `select_option` | Select an option in a `<select>` dropdown by value or text |
 | `scroll_to` | Scroll to element, position, or direction |
 | `navigate_to` | Navigate to any URL |
 | `get_text` | Read text content + attributes of any element |
@@ -226,12 +190,13 @@ Open your web app in Chrome and talk to your agent:
 | `list_baselines` | List all saved baselines |
 | `delete_baseline` | Delete a saved baseline |
 
-### Advanced (6 tools)
+### Advanced (7 tools)
 
 | Tool | What it does |
 |------|-------------|
 | `fill_form` | Fill multiple form fields in one call |
-| `take_screenshot` | Force-capture a fresh screenshot of the current tab on demand |
+| `capture_at_viewport` | Resize browser + screenshot (responsive testing) |
+| `responsive_audit` | Capture at mobile, tablet, desktop breakpoints in one call |
 | `get_performance_metrics` | Web Vitals, memory, resource counts |
 | `get_storage` | Read localStorage / sessionStorage |
 | `get_cookies` | List cookies for current domain |
@@ -239,11 +204,12 @@ Open your web app in Chrome and talk to your agent:
 
 ## Features
 
-- **32 MCP tools** — observe, act, inspect, compare, audit
+- **31 MCP tools** — observe, act, inspect, compare, audit
 - **Component inspector** — read React/Vue/Svelte/Angular component props, state, hooks, and context
 - **Visual regression** — snapshot baselines and pixel-diff after changes
 - **Error source mapping** — parse stack traces to file:line:column, maps URLs to workspace paths
-- **Agent browser actions** — click, type, scroll, navigate, press keys, select options, fill forms, run JS
+- **Responsive audit** — capture mobile, tablet, and desktop screenshots in one call
+- **Agent browser actions** — click, type, scroll, navigate, fill forms, run JS in the page
 - **Framework detection** — auto-detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery
 - **Performance metrics** — Web Vitals (LCP, FCP, TTFB), memory, resource breakdown
 - **Accessibility auditing** — missing alt text, unlabeled inputs, heading skips, low contrast
@@ -300,12 +266,11 @@ argus/
 │   │   ├── content/            # Content script + click capture
 │   │   ├── injected/           # Page-context monitors (console, network)
 │   │   └── popup/              # Settings UI
-│   ├── tests/                  # 76 tests (vitest + jsdom)
 │   └── manifest.json
 ├── docs/
 │   └── ARCHITECTURE.md         # Technical architecture
 ├── .github/workflows/          # CI: lint, test, build
-└── LICENSE                     # MIT
+└── LICENSE                     # BSL 1.1
 ```
 
 ## Security
@@ -323,7 +288,7 @@ argus/
 # Server
 cd server
 pip install -e ".[dev]"
-pytest tests/ -v              # run tests (140+ tests)
+pytest tests/ -v              # run tests
 ruff check src/ tests/        # lint
 ruff format src/ tests/       # format
 
@@ -332,9 +297,8 @@ cd extension
 npm install
 npm run build                 # production build
 npm run watch                 # dev mode with auto-rebuild
-npm test                      # run tests (76 tests)
 ```
 
 ## License
 
-MIT — see [LICENSE](LICENSE).
+Business Source License 1.1 — © 2026 Vivek Rao. Free for non-commercial use. Commercial use requires a license. Converts to Apache 2.0 on March 14, 2030. See [LICENSE](LICENSE) for details.

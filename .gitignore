@@ -31,3 +31,6 @@ Thumbs.db
 
 # Argus runtime
 .argus/
+
+# Strategy docs (internal only)
+docs/STRATEGY.md

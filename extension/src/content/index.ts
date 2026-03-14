@@ -6,7 +6,6 @@
 import type { ErrorEvent, ConsoleEvent, NetworkEvent, ArgusInternalMessage } from "../types";
 
 const ARGUS_ID = "__argus__";
-const MAX_BUFFER_SIZE = 200; // cap per-type to prevent memory bloat when SW is down
 
 // --- Event buffer ---
 let errorBuffer: ErrorEvent[] = [];
@@ -45,26 +44,17 @@ window.addEventListener("message", (event) => {
 function flushBuffer() {
   if (errorBuffer.length === 0 && consoleBuffer.length === 0 && networkBuffer.length === 0) return;
 
-  // Drain the buffers into local copies
-  const errors = errorBuffer.splice(0);
-  const console_events = consoleBuffer.splice(0);
-  const network_events = networkBuffer.splice(0);
-
   const msg: ArgusInternalMessage = {
     type: "events-batch",
-    payload: { errors, console_events, network_events },
+    payload: {
+      errors: errorBuffer.splice(0),
+      console_events: consoleBuffer.splice(0),
+      network_events: networkBuffer.splice(0),
+    },
   };
 
   chrome.runtime.sendMessage(msg).catch(() => {
-    // SW inactive — re-queue events so they aren't lost
-    errorBuffer.unshift(...errors);
-    consoleBuffer.unshift(...console_events);
-    networkBuffer.unshift(...network_events);
-
-    // Cap buffers to prevent unbounded growth while SW is down
-    if (errorBuffer.length > MAX_BUFFER_SIZE) errorBuffer.length = MAX_BUFFER_SIZE;
-    if (consoleBuffer.length > MAX_BUFFER_SIZE) consoleBuffer.length = MAX_BUFFER_SIZE;
-    if (networkBuffer.length > MAX_BUFFER_SIZE) networkBuffer.length = MAX_BUFFER_SIZE;
+    /* SW might be inactive, events stored for next flush */
   });
 }
 
@@ -141,7 +131,7 @@ function captureElement(x: number, y: number) {
     text: (el.textContent || "").slice(0, 500),
     bounding_rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
     parent_html: el.parentElement?.outerHTML?.slice(0, 1000) || "",
-    timestamp: Date.now() / 1000,
+    timestamp: Date.now(),
     url: window.location.href,
     screenshot_index: null,
   };
@@ -184,5 +174,6 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, _sender, sendRe
   return false;
 });
 
-// --- Test exports (stripped by esbuild IIFE format in production) ---
-export { flushBuffer, buildSelector, captureElement, errorBuffer, consoleBuffer, networkBuffer, MAX_BUFFER_SIZE };
+
+
+

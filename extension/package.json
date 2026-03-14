@@ -4,9 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node esbuild.config.mjs",
-    "watch": "node esbuild.config.mjs --watch",
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "watch": "node esbuild.config.mjs --watch"
   },
   "devDependencies": {
     "@types/chrome": "^0.0.287",

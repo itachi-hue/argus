@@ -24,7 +24,7 @@ window.addEventListener("error", (e) => {
     lineno: e.lineno || 0,
     colno: e.colno || 0,
     stack: e.error?.stack || "",
-    timestamp: Date.now() / 1000,
+    timestamp: Date.now(),
     occurrence_count: 1,
   });
 });
@@ -37,7 +37,7 @@ window.addEventListener("unhandledrejection", (e) => {
     lineno: 0,
     colno: 0,
     stack: reason?.stack || "",
-    timestamp: Date.now() / 1000,
+    timestamp: Date.now(),
     occurrence_count: 1,
   });
 });
@@ -62,7 +62,7 @@ for (const level of CONSOLE_LEVELS) {
           return String(a);
         }
       }),
-      timestamp: Date.now() / 1000,
+      timestamp: Date.now(),
       source: "",
       lineno: 0,
     });
@@ -106,7 +106,7 @@ window.fetch = async function (...args: Parameters<typeof fetch>) {
       request_body: requestBody,
       response_body: responseBody,
       duration_ms: duration,
-      timestamp: Date.now() / 1000,
+      timestamp: Date.now(),
       error: null,
     });
 
@@ -122,7 +122,7 @@ window.fetch = async function (...args: Parameters<typeof fetch>) {
       request_body: requestBody,
       response_body: null,
       duration_ms: Date.now() - startTime,
-      timestamp: Date.now() / 1000,
+      timestamp: Date.now(),
       error: error?.message || "Network error",
     });
     throw error;
@@ -180,12 +180,16 @@ XHRProto.send = function (body?: Document | XMLHttpRequestBodyInit | null) {
         request_body: meta.requestBody,
         response_body: truncate(this.responseText),
         duration_ms: Date.now() - meta.startTime,
-        timestamp: Date.now() / 1000,
+        timestamp: Date.now(),
         error: this.status === 0 ? "Network error" : null,
       });
     });
   }
   return originalSend.apply(this, [body]);
 };
+
+
+
+
 
 
