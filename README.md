@@ -91,13 +91,46 @@ Add to `claude_desktop_config.json` (find it via **Settings → Developer → Ed
 
 Restart Claude Desktop after saving.
 
+#### Remote / Cloud / SSE
+
+Argus also supports MCP over SSE for remote connections. Start the server in SSE mode:
+
+```bash
+cd server
+ARGUS_TRANSPORT=sse python -m argus
+# or on Windows PowerShell:
+$env:ARGUS_TRANSPORT="sse"; python -m argus
+```
+
+Then connect your MCP client to the SSE endpoint:
+
+```json
+{
+  "mcpServers": {
+    "argus": {
+      "url": "http://127.0.0.1:42777/mcp/sse"
+    }
+  }
+}
+```
+
+For cloud deployment, change the host/port and point the Chrome extension + MCP client to the cloud URL. Same tools, same API — just a different address.
+
 #### Other MCP Clients (Windsurf, Cline, Continue, etc.)
 
-Any client that supports MCP stdio transport works. Point it at:
+Any client that supports MCP stdio or SSE transport works.
+
+**stdio** (local, default):
 
 ```
 command: python -m argus
 working directory: /path/to/project_argus/server
+```
+
+**SSE** (remote-ready):
+
+```
+url: http://127.0.0.1:42777/mcp/sse
 ```
 
 ### 3. Get the Auth Token
@@ -165,6 +198,7 @@ Environment variables (or `~/.argus/config.json`):
 
 | Variable | Default | Description |
 |----------|---------|-------------|
+| `ARGUS_TRANSPORT` | `stdio` | MCP transport: `stdio`, `sse`, or `all` |
 | `ARGUS_PORT` | `42777` | HTTP server port |
 | `ARGUS_AUTH_TOKEN` | auto-generated | Auth token (persisted in `~/.argus/config.json`) |
 | `ARGUS_MAX_ERRORS` | `100` | Max errors in buffer |
@@ -183,7 +217,7 @@ Configure via the extension popup:
 Two components, one loop:
 
 - **Chrome Extension** (TypeScript, Manifest V3) — captures browser events, screenshots, element details. Sends to MCP server via HTTP.
-- **MCP Server** (Python) — receives data, filters noise, deduplicates errors, strips sensitive headers, stores in memory. Exposes MCP tools via stdio.
+- **MCP Server** (Python) — receives data, filters noise, deduplicates errors, strips sensitive headers, stores in memory. Exposes MCP tools via stdio (local) or SSE (remote/cloud).
 
 See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full technical design.
 

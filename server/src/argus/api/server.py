@@ -2,6 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from mcp.server.fastmcp import FastMCP
 
 from argus.api.middleware import AuthMiddleware, PayloadSizeMiddleware, RateLimitMiddleware
 from argus.api.routes import create_router
@@ -12,7 +13,11 @@ from argus.security.sanitizer import Sanitizer
 from argus.store.base import ContextStore
 
 
-def create_app(store: ContextStore, config: Settings) -> FastAPI:
+def create_app(
+    store: ContextStore,
+    config: Settings,
+    mcp: FastMCP | None = None,
+) -> FastAPI:
     app = FastAPI(title="Argus", version="0.1.0", docs_url=None, redoc_url=None)
 
     # CORS — allow Chrome extension to POST
@@ -37,5 +42,9 @@ def create_app(store: ContextStore, config: Settings) -> FastAPI:
     router = create_router(store, noise_filter, deduplicator, sanitizer)
     app.include_router(router)
 
-    return app
+    # Mount MCP SSE transport if provided
+    if mcp is not None:
+        sse_app = mcp.sse_app(mount_path="/mcp")
+        app.mount("/mcp", sse_app)
 
+    return app

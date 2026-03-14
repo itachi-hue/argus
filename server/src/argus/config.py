@@ -45,6 +45,7 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 42777
     auth_token: str = ""
+    transport: str = "stdio"  # "stdio", "sse", or "all"
     max_errors: int = 100
     max_console: int = 200
     max_network: int = 200
