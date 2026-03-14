@@ -131,10 +131,31 @@ npm run build
 Three ways to connect (pick whichever is easiest):
 
 <details>
-<summary><strong>Option A — 4-digit pairing code (recommended)</strong></summary>
+<summary><strong>Option A — Web pairing page (recommended)</strong></summary>
+
+Open **[http://127.0.0.1:42777/pair](http://127.0.0.1:42777/pair)** in your browser.
+
+The page shows your auth token with a **Copy to Clipboard** button. Copy it, click the Argus extension icon, then click **Paste Token from Clipboard**. Done.
+
+This works even when Cursor or Claude Code spawned the server — no logs to find.
+</details>
+
+<details>
+<summary><strong>Option B — CLI (if you have a terminal open)</strong></summary>
+
+```bash
+cd server
+python -m argus token    # prints token and copies to clipboard
+```
+
+Then click **Paste Token from Clipboard** in the extension popup.
+</details>
+
+<details>
+<summary><strong>Option C — 4-digit pairing code</strong></summary>
 
 1. Click the Argus extension icon → **Connect to Server**
-2. The server prints a 4-digit code to your terminal:
+2. The server prints a 4-digit code to stderr:
    ```
    🔗 Extension pairing code:  4821
       Enter this code in the extension popup to connect.
@@ -142,27 +163,7 @@ Three ways to connect (pick whichever is easiest):
    ```
 3. Type the code in the popup → done
 
-**Where to see the code:** It prints to stderr in the terminal where Argus is running. If Cursor/Claude Code spawned the server, check the MCP server logs in your editor.
-</details>
-
-<details>
-<summary><strong>Option B — Paste token from clipboard</strong></summary>
-
-On startup, Argus auto-copies the auth token to your clipboard. Click **Paste Token from Clipboard** in the popup.
-
-If the clipboard was overwritten, get the token manually:
-```bash
-cd server
-python -m argus token    # prints token and copies to clipboard
-```
-</details>
-
-<details>
-<summary><strong>Option C — Manual setup</strong></summary>
-
-In the extension popup, expand **Manual setup** and enter:
-- **Server URL:** `http://127.0.0.1:42777` (default)
-- **Auth Token:** from `python -m argus token` or `~/.argus/config.json`
+> **Note:** If Cursor/Claude Code spawned the server, stderr goes to the editor's MCP logs. Use Option A or B instead.
 </details>
 
 ### 5. Use It

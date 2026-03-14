@@ -23,10 +23,13 @@ def create_app(
 ) -> FastAPI:
     app = FastAPI(title="Argus", version="0.1.0", docs_url=None, redoc_url=None)
 
-    # CORS — allow Chrome extension to POST
+    # CORS — only allow Chrome extension origins.
+    # The extension bypasses CORS anyway (host_permissions), but restricting
+    # this prevents malicious websites from reading API responses via fetch.
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],
+        allow_origins=[],
+        allow_origin_regex=r"^chrome-extension://",
         allow_methods=["GET", "POST", "DELETE", "PATCH"],
         allow_headers=["*"],
     )
@@ -50,8 +53,9 @@ def create_app(
     app.include_router(router)
 
     # Pairing routes (no auth required)
-    pair_router, _ = create_pairing_router(config.auth_token)
+    pair_router, _, page_router = create_pairing_router(config.auth_token)
     app.include_router(pair_router)
+    app.include_router(page_router)
 
     # Mount MCP SSE transport if provided
     if mcp is not None:
