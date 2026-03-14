@@ -122,9 +122,17 @@ class InMemoryStore(ContextStore):
     def get_screenshot_list(self) -> list[dict]:
         with self._lock:
             return [
-                {"index": i, "url": s.url, "timestamp": s.timestamp, "trigger": s.trigger}
+                {"index": i, "url": s.url, "timestamp": s.timestamp, "trigger": s.trigger,
+                 "viewport": {"width": s.viewport.width, "height": s.viewport.height}}
                 for i, s in enumerate(reversed(self._screenshots))
             ]
+
+    def set_max_screenshots(self, max_screenshots: int) -> None:
+        with self._lock:
+            self._max_screenshots = max(1, max_screenshots)
+            # Trim if needed
+            if len(self._screenshots) > self._max_screenshots:
+                self._screenshots = self._screenshots[-self._max_screenshots:]
 
     def get_selected_element(self) -> ElementCapture | None:
         with self._lock:

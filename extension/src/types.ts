@@ -85,6 +85,8 @@ export interface ArgusSettings {
   capture_console_logs: boolean;
   capture_network: boolean;
   auto_capture: boolean;
+  capture_interval_s: number;
+  max_screenshots: number;
   max_body_length: number;
   batch_interval_ms: number;
   batch_size: number;
@@ -98,6 +100,8 @@ export const DEFAULT_SETTINGS: ArgusSettings = {
   capture_console_logs: true,
   capture_network: true,
   auto_capture: true,
+  capture_interval_s: 30,
+  max_screenshots: 15,
   max_body_length: 2000,
   batch_interval_ms: 3000,
   batch_size: 50,

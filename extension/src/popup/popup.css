@@ -224,6 +224,55 @@ h1 {
   margin-top: 4px;
 }
 
+/* Capture settings */
+.capture-settings {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #27272a;
+  border-radius: 8px;
+  background: #1c1c1f;
+}
+
+.setting-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.setting-row label {
+  font-size: 12px;
+  color: #a1a1aa;
+}
+
+.setting-value {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.setting-input {
+  width: 56px;
+  padding: 4px 6px;
+  border: 1px solid #3f3f46;
+  border-radius: 4px;
+  background: #27272a;
+  color: #f4f4f5;
+  font-size: 13px;
+  text-align: center;
+  outline: none;
+  -moz-appearance: textfield;
+}
+.setting-input::-webkit-outer-spin-button,
+.setting-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.setting-input:focus { border-color: #6366f1; }
+
+.setting-unit {
+  font-size: 11px;
+  color: #71717a;
+}
+
 /* Utility */
 .hidden { display: none !important; }
 

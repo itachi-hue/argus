@@ -61,6 +61,22 @@
         </label>
       </div>
 
+      <div id="capture-settings" class="capture-settings">
+        <div class="setting-row">
+          <label for="capture-interval">Capture every</label>
+          <div class="setting-value">
+            <input type="number" id="capture-interval" min="10" max="300" value="30" class="setting-input">
+            <span class="setting-unit">sec</span>
+          </div>
+        </div>
+        <div class="setting-row">
+          <label for="max-screenshots">Max screenshots</label>
+          <div class="setting-value">
+            <input type="number" id="max-screenshots" min="3" max="50" value="15" class="setting-input">
+          </div>
+        </div>
+      </div>
+
       <button id="disconnect-btn" class="btn-danger">Disconnect</button>
     </div>
 

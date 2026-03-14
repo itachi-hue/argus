@@ -74,7 +74,8 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
 
     @mcp.tool()
     def get_screenshot(index: int = 0) -> list[TextContent | ImageContent]:
-        """Get a browser screenshot. Index 0 is the most recent.
+        """Get a browser screenshot by index. Use list_screenshots first to see the
+        timeline, then fetch specific screenshots by index.
 
         Args:
             index: Screenshot index (0 = latest, 1 = second latest, etc.)
@@ -97,7 +98,12 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
 
     @mcp.tool()
     def list_screenshots() -> str:
-        """List all available screenshots with metadata (without image data)."""
+        """List all available screenshots with metadata (without image data).
+
+        Returns a timeline of captured screenshots with index, URL, timestamp,
+        trigger (hotkey/page_load/tab_switch/periodic/user_click), and viewport size.
+        Use this to decide which screenshots to fetch with get_screenshot(index).
+        """
         screenshots = store.get_screenshot_list()
         if not screenshots:
             return "No screenshots captured."

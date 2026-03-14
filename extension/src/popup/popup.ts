@@ -23,6 +23,9 @@ const saveBtn = document.getElementById("save-btn") as HTMLButtonElement;
 const autoCaptureCheck = document.getElementById("auto-capture") as HTMLInputElement;
 const captureLogsCheck = document.getElementById("capture-logs") as HTMLInputElement;
 const captureNetworkCheck = document.getElementById("capture-network") as HTMLInputElement;
+const captureIntervalInput = document.getElementById("capture-interval") as HTMLInputElement;
+const maxScreenshotsInput = document.getElementById("max-screenshots") as HTMLInputElement;
+const captureSettingsDiv = document.getElementById("capture-settings") as HTMLDivElement;
 const disconnectBtn = document.getElementById("disconnect-btn") as HTMLButtonElement;
 
 // --- State ---
@@ -54,6 +57,9 @@ async function loadSettings() {
   autoCaptureCheck.checked = s.auto_capture !== false;
   captureLogsCheck.checked = s.capture_console_logs !== false;
   captureNetworkCheck.checked = s.capture_network !== false;
+  captureIntervalInput.value = String(s.capture_interval_s || 30);
+  maxScreenshotsInput.value = String(s.max_screenshots || 15);
+  captureSettingsDiv.style.display = autoCaptureCheck.checked ? "" : "none";
 }
 
 // --- Check connection ---
@@ -197,9 +203,28 @@ saveBtn.addEventListener("click", async () => {
 
 // --- Toggle saves ---
 autoCaptureCheck.addEventListener("change", async () => {
+  captureSettingsDiv.style.display = autoCaptureCheck.checked ? "" : "none";
   await chrome.runtime.sendMessage({
     type: "update-settings",
     payload: { auto_capture: autoCaptureCheck.checked },
+  } as ArgusInternalMessage);
+});
+
+captureIntervalInput.addEventListener("change", async () => {
+  const val = Math.max(10, Math.min(300, parseInt(captureIntervalInput.value) || 30));
+  captureIntervalInput.value = String(val);
+  await chrome.runtime.sendMessage({
+    type: "update-settings",
+    payload: { capture_interval_s: val },
+  } as ArgusInternalMessage);
+});
+
+maxScreenshotsInput.addEventListener("change", async () => {
+  const val = Math.max(3, Math.min(50, parseInt(maxScreenshotsInput.value) || 15));
+  maxScreenshotsInput.value = String(val);
+  await chrome.runtime.sendMessage({
+    type: "update-settings",
+    payload: { max_screenshots: val },
   } as ArgusInternalMessage);
 });
 

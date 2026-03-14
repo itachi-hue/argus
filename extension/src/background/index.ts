@@ -19,6 +19,8 @@ let settings: ArgusSettings = {
   capture_console_logs: true,
   capture_network: true,
   auto_capture: true,
+  capture_interval_s: 30,
+  max_screenshots: 15,
   max_body_length: 2000,
   batch_interval_ms: 3000,
   batch_size: 50,
@@ -94,8 +96,23 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendRes
   }
 
   if (msg.type === "update-settings" && msg.payload) {
+    const prevInterval = settings.capture_interval_s;
+    const prevAutoCapture = settings.auto_capture;
+    const prevMaxScreenshots = settings.max_screenshots;
+
     settings = { ...settings, ...msg.payload };
     chrome.storage.local.set({ argus_settings: settings });
+
+    // Re-create alarm if interval or auto_capture changed
+    if (settings.capture_interval_s !== prevInterval || settings.auto_capture !== prevAutoCapture) {
+      setupPeriodicCapture();
+    }
+
+    // Sync max_screenshots to server if changed
+    if (settings.max_screenshots !== prevMaxScreenshots) {
+      syncMaxScreenshots();
+    }
+
     sendResponse({ ok: true });
     return true;
   }
@@ -234,16 +251,41 @@ chrome.tabs.onActivated.addListener(() => {
   setTimeout(() => autoCapture("tab_switch"), 500);
 });
 
-// --- Periodic capture (every 30s) — catches HMR, scroll, state changes ---
+// --- Periodic capture — catches HMR, scroll, state changes ---
 const PERIODIC_ALARM_NAME = "argus-periodic-capture";
 
-chrome.alarms.create(PERIODIC_ALARM_NAME, { periodInMinutes: 0.5 }); // 30 seconds
+function setupPeriodicCapture() {
+  chrome.alarms.clear(PERIODIC_ALARM_NAME, () => {
+    if (settings.auto_capture && settings.capture_interval_s > 0) {
+      chrome.alarms.create(PERIODIC_ALARM_NAME, {
+        periodInMinutes: settings.capture_interval_s / 60,
+      });
+    }
+  });
+}
+
+setupPeriodicCapture();
 
 chrome.alarms.onAlarm.addListener((alarm) => {
   if (alarm.name === PERIODIC_ALARM_NAME) {
     autoCapture("periodic");
   }
 });
+
+// --- Sync max_screenshots to server ---
+function syncMaxScreenshots() {
+  if (!settings.auth_token) return;
+  fetch(`${settings.server_url}/api/settings`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${settings.auth_token}`,
+    },
+    body: JSON.stringify({ max_screenshots: settings.max_screenshots }),
+  }).catch(() => {});
+}
+
+syncMaxScreenshots();
 
 // --- Context menu ---
 chrome.runtime.onInstalled.addListener(() => {

@@ -1,6 +1,7 @@
 """HTTP route handlers for Chrome extension data ingestion."""
 
 from fastapi import APIRouter
+from pydantic import BaseModel
 
 from argus.core.dedup import ErrorDeduplicator
 from argus.core.filters import NoiseFilter
@@ -14,6 +15,10 @@ from argus.core.models import (
 )
 from argus.security.sanitizer import Sanitizer
 from argus.store.base import ContextStore
+
+
+class UpdateSettingsRequest(BaseModel):
+    max_screenshots: int | None = None
 
 
 def create_router(
@@ -87,6 +92,12 @@ def create_router(
             store.set_selected_element(req.selected_element)
 
         return {"accepted": True}
+
+    @router.patch("/settings")
+    async def update_settings(req: UpdateSettingsRequest):
+        if req.max_screenshots is not None:
+            store.set_max_screenshots(req.max_screenshots)
+        return {"updated": True}
 
     @router.delete("/context")
     async def clear_context(event_type: str | None = None):

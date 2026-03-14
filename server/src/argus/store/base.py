@@ -61,6 +61,9 @@ class ContextStore(ABC):
     def get_page_info(self) -> PageInfo | None: ...
 
     @abstractmethod
+    def set_max_screenshots(self, max_screenshots: int) -> None: ...
+
+    @abstractmethod
     def clear(self, event_type: str | None = None) -> None: ...
 
 
