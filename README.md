@@ -5,7 +5,7 @@
 <h1 align="center">Argus</h1>
 
 <p align="center">
-  <strong>Give your AI coding agent eyes into the browser.</strong>
+  <strong>Give your AI agent eyes and hands in the browser.</strong>
 </p>
 
 <p align="center">
@@ -13,33 +13,47 @@
   <a href="https://github.com/itachi-hue/argus/actions/workflows/lint.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/lint.yml/badge.svg" alt="Lint" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/build.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-BSL_1.1-orange.svg" alt="BSL 1.1" /></a>
-  <img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+" />
   <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible" />
 </p>
 
 ---
 
-AI agents can read and write your code — but they're **blind** to what happens when you run it.
+Argus connects your AI agent to your browser through [MCP](https://modelcontextprotocol.io/). It captures runtime context — console errors, network failures, screenshots — and lets the agent click, type, navigate, and inspect the page directly.
 
-Argus gives your AI agent **eyes and hands** in the browser. It captures runtime context — **console errors, network failures, screenshots, UI element details** — and lets the agent **click, type, navigate, and inspect** the page directly, all through [MCP](https://modelcontextprotocol.io/) tools.
-
-No more copy-pasting errors. No more describing what you see. Your agent calls `get_console_errors()` and sees the `TypeError`. Calls `get_screenshot()` and sees the broken layout. Calls `click_element()` and tests the fix. Calls `get_accessibility_issues()` and catches missing alt text.
+Works with **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** · **Cline** · and any MCP-compatible client.
 
 ## How It Works
 
 ```
-Browser → Chrome Extension (captures) → MCP Server (stores) → AI Agent (queries + fixes)
+Browser → Chrome Extension (captures) → MCP Server (stores) → AI Agent (reads + acts)
 ```
 
-1. **Chrome Extension** monitors your app — console errors, network requests, console logs
-2. **Auto-capture** takes screenshots on page load, tab switch, clicks, and periodically
-3. **Hotkey** `Ctrl+Shift+L` captures a screenshot + all current context on demand
-4. **Right-click** any element → "Capture for AI Agent" to grab element details + styles
-5. **Your agent** calls MCP tools to observe (`get_console_errors()`, `get_screenshot()`) and act (`click_element()`, `type_text()`, `navigate_to()`)
+## MCP Tools
 
-## Works With
+31 tools across 5 categories:
 
-Any MCP-compatible client: **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** · **Cline** · **Continue** · and more.
+| Category | What the agent can do |
+|---|---|
+| **Observe** | Console errors · network failures · screenshots · page info · element details · error source mapping |
+| **Act** | Click · type · scroll · navigate · fill forms · run JS · highlight elements |
+| **Inspect** | React / Vue / Svelte / Angular component props, state, hooks, context |
+| **Test** | Visual regression (pixel-diff) · responsive audit (mobile / tablet / desktop) · accessibility |
+| **Measure** | Web Vitals · localStorage · sessionStorage · cookies |
+
+<details>
+<summary>Full tool reference</summary>
+
+**Observation** (10) — `get_console_errors` · `get_console_logs` · `get_network_failures` · `get_network_log` · `get_screenshot` · `list_screenshots` · `get_selected_element` · `get_page_info` · `get_error_source_context` · `clear_context`
+
+**Browser Actions** (8) — `click_element` · `type_text` · `scroll_to` · `navigate_to` · `get_text` · `run_javascript` · `highlight_element` · `wait_for_element`
+
+**Framework Inspection** (2) — `detect_framework` · `inspect_component`
+
+**Visual Regression** (4) — `snapshot_baseline` · `compare_with_baseline` · `list_baselines` · `delete_baseline`
+
+**Advanced** (7) — `fill_form` · `capture_at_viewport` · `responsive_audit` · `get_performance_metrics` · `get_storage` · `get_cookies` · `get_accessibility_issues`
+
+</details>
 
 ## Quick Start
 
@@ -99,7 +113,7 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 </details>
 
 <details>
-<summary><strong>Other MCP Clients (Windsurf, Cline, Continue, etc.)</strong></summary>
+<summary><strong>Other MCP Clients</strong></summary>
 
 **stdio** (local, default):
 ```
@@ -131,116 +145,24 @@ npm run build
 1. Open **http://127.0.0.1:42777/api/pair** in your browser → click **Copy Token**
 2. Click the Argus extension icon → **Paste Token & Connect**
 
-That's it.
-
 ### 5. Use It
 
 Open your web app in Chrome and talk to your agent:
 
 - *"Check the browser for errors and fix them"*
-- *"Look at the screenshot and fix the layout"*
-- *"The API call is failing, check network failures"*
+- *"Take a screenshot and fix the layout"*
 - *"Click the login button and see what happens"*
-- *"Fill in the signup form and test the validation"*
 - *"Run an accessibility audit on the page"*
-- *"Check the performance metrics — is LCP too slow?"*
 
-## MCP Tools
+## Security
 
-31 tools across 5 categories — everything an AI agent needs to debug, test, and interact with your app:
-
-| | |
-|---|---|
-| 👁️ **Observe** | Console errors · network failures · screenshots · page info · element details · error source mapping |
-| 🖱️ **Act** | Click · type · scroll · navigate · fill forms · run JS · highlight elements |
-| 🔍 **Inspect** | React / Vue / Svelte / Angular component props, state, hooks, context |
-| 🧪 **Test** | Visual regression (pixel-diff) · responsive audit (mobile / tablet / desktop) · accessibility |
-| 📊 **Measure** | Web Vitals · localStorage · sessionStorage · cookies |
-
-<details>
-<summary><strong>Observation</strong> (10 tools)</summary>
-
-| Tool | What it does |
-|------|-------------|
-| `get_console_errors` | JS errors with stack traces |
-| `get_console_logs` | Console output (log, warn, info, debug) |
-| `get_network_failures` | Failed HTTP requests (4xx, 5xx) |
-| `get_network_log` | All recent network requests |
-| `get_screenshot` | Browser screenshot as native image |
-| `list_screenshots` | Timeline of all captured screenshots with metadata |
-| `get_selected_element` | Right-click captured element (selector, styles, HTML) |
-| `get_page_info` | Current page URL, title, viewport |
-| `get_error_source_context` | Parse stack trace to file:line:column with workspace path mapping |
-| `clear_context` | Clear stored context |
-
-</details>
-
-<details>
-<summary><strong>Browser Actions</strong> (8 tools)</summary>
-
-| Tool | What it does |
-|------|-------------|
-| `click_element` | Click any element by CSS selector |
-| `type_text` | Type into input fields (React/Vue compatible) |
-| `scroll_to` | Scroll to element, position, or direction |
-| `navigate_to` | Navigate to any URL |
-| `get_text` | Read text content + attributes of any element |
-| `run_javascript` | Execute JS in page context (access `window`, React internals, etc.) |
-| `highlight_element` | Highlight an element with a colored outline for debugging |
-| `wait_for_element` | Wait for an element to appear (for async UI) |
-
-</details>
-
-<details>
-<summary><strong>Framework Inspection</strong> (2 tools)</summary>
-
-| Tool | What it does |
-|------|-------------|
-| `detect_framework` | Detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery |
-| `inspect_component` | Read component name, props, state, hooks, context for any element |
-
-</details>
-
-<details>
-<summary><strong>Visual Regression</strong> (4 tools)</summary>
-
-| Tool | What it does |
-|------|-------------|
-| `snapshot_baseline` | Save current screenshot as a named baseline |
-| `compare_with_baseline` | Pixel-diff current vs baseline, returns diff image |
-| `list_baselines` | List all saved baselines |
-| `delete_baseline` | Delete a saved baseline |
-
-</details>
-
-<details>
-<summary><strong>Advanced</strong> (7 tools)</summary>
-
-| Tool | What it does |
-|------|-------------|
-| `fill_form` | Fill multiple form fields in one call |
-| `capture_at_viewport` | Resize browser + screenshot (responsive testing) |
-| `responsive_audit` | Capture at mobile, tablet, desktop breakpoints in one call |
-| `get_performance_metrics` | Web Vitals, memory, resource counts |
-| `get_storage` | Read localStorage / sessionStorage |
-| `get_cookies` | List cookies for current domain |
-| `get_accessibility_issues` | Audit for missing alt text, labels, contrast, headings |
-
-</details>
-
-## Highlights
-
-- **Local-first** — all data stays on your machine, server binds to `127.0.0.1` only
-- **Smart screenshots** — JPEG compressed, resized, native image content (low token cost)
-- **Noise filtering** — blocks analytics, HMR, browser extension traffic automatically
-- **Error deduplication** — same error in a loop won't flood the buffer
-- **Sensitive data stripping** — `Authorization`, `Cookie` headers redacted automatically
-- **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
+- All data stays on your machine — server binds to `127.0.0.1` only
+- Auth token required on every request (constant-time comparison)
+- `Authorization`, `Cookie`, `Set-Cookie` headers automatically redacted
+- Request/response bodies truncated · in-memory only · rate limited
 
 <details>
 <summary><strong>Configuration</strong></summary>
-
-### Server (environment variables)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
@@ -251,58 +173,7 @@ Open your web app in Chrome and talk to your agent:
 | `ARGUS_MAX_SCREENSHOTS` | `15` | Max screenshots stored |
 | `ARGUS_RATE_LIMIT` | `120` | Max requests/minute |
 
-### Extension (popup UI)
-
-| Setting | Default | Description |
-|---------|---------|-------------|
-| Auto Screenshots | On | Capture on page load, tab switch, click, periodic |
-| Capture interval | 30 sec | Periodic capture frequency (10–300s) |
-| Max screenshots | 15 | Rolling buffer size (3–50) |
-| Console & Errors | On | Capture console logs and JS errors |
-| Network Traffic | On | Capture HTTP requests |
-| Agent Actions | On | Let AI click, type, navigate, and inspect the page |
-
 </details>
-
-<details>
-<summary><strong>Project Structure</strong></summary>
-
-```
-argus/
-├── server/                     # Python MCP server
-│   ├── src/argus/
-│   │   ├── main.py             # Entry point
-│   │   ├── config.py           # Settings (pydantic-settings)
-│   │   ├── mcp/tools.py        # MCP tool definitions
-│   │   ├── api/                # FastAPI HTTP server
-│   │   ├── core/               # Models, filters, dedup, image opt, commands, baselines, stack parser
-│   │   ├── store/              # Storage abstraction (in-memory)
-│   │   └── security/           # Sensitive data sanitizer
-│   ├── tests/                  # 140+ tests
-│   └── pyproject.toml
-├── extension/                  # Chrome extension (Manifest V3)
-│   ├── src/
-│   │   ├── background/         # Service worker
-│   │   ├── content/            # Content script + click capture
-│   │   ├── injected/           # Page-context monitors (console, network)
-│   │   └── popup/              # Settings UI
-│   └── manifest.json
-├── docs/
-│   └── ARCHITECTURE.md         # Technical architecture
-├── .github/workflows/          # CI: lint, test, build
-└── LICENSE                     # BSL 1.1
-```
-
-</details>
-
-## Security
-
-- Server binds to `127.0.0.1` only — never exposed to network
-- Auth token required on every request (constant-time comparison)
-- `Authorization`, `Cookie`, `Set-Cookie` headers automatically redacted
-- Request/response bodies truncated to 2000 chars
-- All data in-memory only — cleared on server restart
-- Rate limiting: 120 req/min
 
 ## Development
 
