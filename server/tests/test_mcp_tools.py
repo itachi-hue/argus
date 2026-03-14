@@ -128,9 +128,11 @@ class TestGetScreenshot:
         store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_screenshot")
         result = fn()
-        assert "No screenshots" in result
+        # Returns list with single TextContent
+        assert len(result) == 1
+        assert "No screenshots" in result[0].text
 
-    def test_returns_screenshot(self):
+    def test_returns_screenshot_as_image_content(self):
         store, mcp = _setup()
         store.add_screenshot(Screenshot(
             data="dGVzdA==", url="http://localhost:3000", timestamp=1000.0,
@@ -138,9 +140,17 @@ class TestGetScreenshot:
         ))
         fn = _get_tool_fn(mcp, "get_screenshot")
         result = fn()
-        data = json.loads(result)
-        assert data["url"] == "http://localhost:3000"
-        assert data["image_base64"] == "dGVzdA=="
+        # Returns [TextContent(metadata), ImageContent(image)]
+        assert len(result) == 2
+        # First item is metadata text
+        assert result[0].type == "text"
+        metadata = json.loads(result[0].text)
+        assert metadata["url"] == "http://localhost:3000"
+        assert "image_base64" not in metadata  # image is separate now
+        # Second item is native image content
+        assert result[1].type == "image"
+        assert result[1].data == "dGVzdA=="
+        assert result[1].mimeType == "image/jpeg"
 
 
 class TestListScreenshots:

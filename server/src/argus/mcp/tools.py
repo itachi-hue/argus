@@ -1,9 +1,9 @@
 """MCP tool definitions — the agent-facing interface."""
 
 import json
-import base64
 
 from mcp.server.fastmcp import FastMCP
+from mcp.types import ImageContent, TextContent
 
 from argus.store.base import ContextStore
 
@@ -73,7 +73,7 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
         return json.dumps([e.model_dump() for e in events], indent=2)
 
     @mcp.tool()
-    def get_screenshot(index: int = 0) -> str:
+    def get_screenshot(index: int = 0) -> list[TextContent | ImageContent]:
         """Get a browser screenshot. Index 0 is the most recent.
 
         Args:
@@ -81,16 +81,19 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
         """
         screenshot = store.get_screenshot(index=index)
         if not screenshot:
-            return "No screenshots captured. Ask the user to press the Argus hotkey in the browser."
+            return [TextContent(type="text", text="No screenshots captured. Ask the user to press the Argus hotkey in the browser.")]
 
-        # Return metadata + base64 image data
-        return json.dumps({
+        # Return metadata as text + image as native image content block
+        metadata = json.dumps({
             "url": screenshot.url,
             "timestamp": screenshot.timestamp,
             "viewport": screenshot.viewport.model_dump(),
             "trigger": screenshot.trigger,
-            "image_base64": screenshot.data,
         })
+        return [
+            TextContent(type="text", text=metadata),
+            ImageContent(type="image", data=screenshot.data, mimeType="image/jpeg"),
+        ]
 
     @mcp.tool()
     def list_screenshots() -> str:
