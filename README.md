@@ -12,7 +12,7 @@
   <a href="https://github.com/itachi-hue/argus/actions/workflows/test.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/test.yml/badge.svg" alt="Tests" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/lint.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/lint.yml/badge.svg" alt="Lint" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/build.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-proprietary-red.svg" alt="Proprietary" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-green.svg" alt="MIT License" /></a>
   <img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+" />
   <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible" />
 </p>
@@ -266,11 +266,12 @@ argus/
 │   │   ├── content/            # Content script + click capture
 │   │   ├── injected/           # Page-context monitors (console, network)
 │   │   └── popup/              # Settings UI
+│   ├── tests/                  # 76 tests (vitest + jsdom)
 │   └── manifest.json
 ├── docs/
 │   └── ARCHITECTURE.md         # Technical architecture
 ├── .github/workflows/          # CI: lint, test, build
-└── LICENSE                     # Proprietary
+└── LICENSE                     # MIT
 ```
 
 ## Security
@@ -288,7 +289,7 @@ argus/
 # Server
 cd server
 pip install -e ".[dev]"
-pytest tests/ -v              # run tests
+pytest tests/ -v              # run tests (140+ tests)
 ruff check src/ tests/        # lint
 ruff format src/ tests/       # format
 
@@ -297,8 +298,9 @@ cd extension
 npm install
 npm run build                 # production build
 npm run watch                 # dev mode with auto-rebuild
+npm test                      # run tests (76 tests)
 ```
 
 ## License
 
-Proprietary — © 2026 Vivek Rao. All rights reserved.
+MIT — see [LICENSE](LICENSE).
