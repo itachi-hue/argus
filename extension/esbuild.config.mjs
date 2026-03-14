@@ -5,6 +5,7 @@ const watch = process.argv.includes("--watch");
 const common = {
   bundle: true,
   outdir: "dist",
+  outbase: "src",
   target: "chrome120",
   sourcemap: false,
   minify: !watch,
