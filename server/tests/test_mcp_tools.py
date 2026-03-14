@@ -40,7 +40,7 @@ def _get_tool_fn(mcp, name: str):
 
 class TestGetConsoleErrors:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_console_errors")
         result = fn()
         assert "No console errors" in result
@@ -70,7 +70,7 @@ class TestGetConsoleErrors:
 
 class TestGetConsoleLogs:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_console_logs")
         result = fn()
         assert "No console logs" in result
@@ -105,7 +105,7 @@ class TestGetConsoleLogs:
 
 class TestGetNetworkFailures:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_network_failures")
         result = fn()
         assert "No network failures" in result
@@ -144,7 +144,7 @@ class TestGetNetworkLog:
 
 class TestGetScreenshot:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_screenshot")
         result = fn()
         # Returns list with single TextContent
@@ -179,7 +179,7 @@ class TestGetScreenshot:
 
 class TestListScreenshots:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "list_screenshots")
         result = fn()
         assert "No screenshots" in result
@@ -207,7 +207,7 @@ class TestListScreenshots:
 
 class TestGetSelectedElement:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_selected_element")
         result = fn()
         assert "No element captured" in result
@@ -233,7 +233,7 @@ class TestGetSelectedElement:
 
 class TestGetPageInfo:
     def test_empty(self):
-        store, mcp = _setup()
+        _store, mcp = _setup()
         fn = _get_tool_fn(mcp, "get_page_info")
         result = fn()
         assert "No page info" in result
