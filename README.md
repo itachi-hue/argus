@@ -128,9 +128,42 @@ npm run build
 
 ### 4. Pair Extension to Server
 
-Click the Argus extension icon → **Connect to Server** → enter the 4-digit code from your terminal. Done.
+Three ways to connect (pick whichever is easiest):
 
-Alternatives: **Paste Token from Clipboard** or enter manually via **Manual setup**.
+<details>
+<summary><strong>Option A — 4-digit pairing code (recommended)</strong></summary>
+
+1. Click the Argus extension icon → **Connect to Server**
+2. The server prints a 4-digit code to your terminal:
+   ```
+   🔗 Extension pairing code:  4821
+      Enter this code in the extension popup to connect.
+      Expires in 2 minutes.
+   ```
+3. Type the code in the popup → done
+
+**Where to see the code:** It prints to stderr in the terminal where Argus is running. If Cursor/Claude Code spawned the server, check the MCP server logs in your editor.
+</details>
+
+<details>
+<summary><strong>Option B — Paste token from clipboard</strong></summary>
+
+On startup, Argus auto-copies the auth token to your clipboard. Click **Paste Token from Clipboard** in the popup.
+
+If the clipboard was overwritten, get the token manually:
+```bash
+cd server
+python -m argus token    # prints token and copies to clipboard
+```
+</details>
+
+<details>
+<summary><strong>Option C — Manual setup</strong></summary>
+
+In the extension popup, expand **Manual setup** and enter:
+- **Server URL:** `http://127.0.0.1:42777` (default)
+- **Auth Token:** from `python -m argus token` or `~/.argus/config.json`
+</details>
 
 ### 5. Use It
 
