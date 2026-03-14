@@ -154,3 +154,5 @@ class InMemoryStore(ContextStore):
             elif event_type == "element":
                 self._selected_element = None
 
+
+

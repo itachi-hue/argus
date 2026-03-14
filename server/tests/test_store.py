@@ -161,3 +161,5 @@ class TestClear:
         assert s.get_errors() == []
         assert len(s.get_console_events()) == 1
 
+
+

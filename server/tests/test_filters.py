@@ -91,3 +91,5 @@ class TestErrorFiltering:
         assert len(kept) == 1
         assert kept[0].message == "real error"
 
+
+

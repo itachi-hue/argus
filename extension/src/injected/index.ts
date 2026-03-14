@@ -188,3 +188,5 @@ XHRProto.send = function (body?: Document | XMLHttpRequestBodyInit | null) {
   return originalSend.apply(this, [body]);
 };
 
+
+

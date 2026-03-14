@@ -111,3 +111,5 @@ class NoiseFilter:
     def filter_errors(self, errors: list) -> list:
         return [e for e in errors if self.should_keep_error(e.source, e.stack)]
 
+
+

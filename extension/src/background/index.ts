@@ -55,7 +55,7 @@ async function sendToServer(path: string, body: any): Promise<boolean> {
 // --- Screenshot capture ---
 async function captureScreenshot(trigger: string = "hotkey"): Promise<string | null> {
   try {
-    const dataUrl = await chrome.tabs.captureVisibleTab(undefined!, { format: "jpeg", quality: 80 });
+    const dataUrl = await chrome.tabs.captureVisibleTab(undefined!, { format: "jpeg", quality: 40 });
     return dataUrl.replace(/^data:image\/jpeg;base64,/, "");
   } catch {
     return null;

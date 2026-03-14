@@ -268,3 +268,5 @@ class TestClearFlow:
         assert store.get_errors(since_minutes=9999) == []
         assert len(store.get_console_events()) == 1  # console still there
 
+
+

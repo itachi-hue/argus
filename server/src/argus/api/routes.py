@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from argus.core.dedup import ErrorDeduplicator
 from argus.core.filters import NoiseFilter
+from argus.core.image import optimize_screenshot
 from argus.core.models import (
     ElementCapture,
     IngestEventsRequest,
@@ -46,6 +47,7 @@ def create_router(
 
     @router.post("/ingest/screenshot")
     async def ingest_screenshot(screenshot: Screenshot):
+        screenshot.data = optimize_screenshot(screenshot.data)
         store.add_screenshot(screenshot)
         return {"accepted": True}
 
@@ -62,6 +64,7 @@ def create_router(
     @router.post("/ingest/snapshot")
     async def ingest_snapshot(req: IngestSnapshotRequest):
         if req.screenshot:
+            req.screenshot.data = optimize_screenshot(req.screenshot.data)
             store.add_screenshot(req.screenshot)
 
         errors = noise_filter.filter_errors(req.errors)
@@ -91,4 +94,6 @@ def create_router(
         return {"cleared": True}
 
     return router
+
+
 

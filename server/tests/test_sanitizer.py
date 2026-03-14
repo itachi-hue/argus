@@ -79,3 +79,5 @@ class TestNetworkEventSanitization:
         sanitized = s.sanitize_network_events(events)
         assert all(e.request_headers.get("Authorization") == "[REDACTED]" for e in sanitized)
 
+
+

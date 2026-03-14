@@ -49,7 +49,7 @@ class Settings(BaseSettings):
     max_errors: int = 100
     max_console: int = 200
     max_network: int = 200
-    max_screenshots: int = 10
+    max_screenshots: int = 5
     max_payload_size: int = 5 * 1024 * 1024  # 5MB
     rate_limit: int = 120  # requests per minute
     log_level: str = "INFO"

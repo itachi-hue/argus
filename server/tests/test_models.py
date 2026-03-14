@@ -99,3 +99,5 @@ class TestIngestSnapshotRequest:
         assert r.screenshot is not None
         assert r.page_info.title == "X"
 
+
+

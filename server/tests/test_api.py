@@ -168,3 +168,5 @@ class TestClearContext:
         assert len(store.get_errors()) == 0
         assert len(store.get_console_events()) > 0  # console not cleared
 
+
+

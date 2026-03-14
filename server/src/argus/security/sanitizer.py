@@ -44,3 +44,5 @@ class Sanitizer:
     def sanitize_network_events(self, events: list[NetworkEvent]) -> list[NetworkEvent]:
         return [self.sanitize_network_event(e) for e in events]
 
+
+
