@@ -6,6 +6,7 @@ from mcp.server.fastmcp import FastMCP
 from mcp.types import ImageContent, TextContent
 
 from argus.core.commands import CommandQueue
+from argus.core.stack_parser import parse_error
 from argus.store.base import ContextStore
 
 
@@ -148,6 +149,37 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue) -> FastM
         """
         store.clear(event_type)
         return f"Cleared {'all context' if not event_type else event_type}."
+
+    # ═══════════════════════════════════════════════════════════════
+    # ERROR SOURCE MAPPING — parse stack traces to file:line:column
+    # ═══════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    def get_error_source_context(error_index: int = 0) -> str:
+        """Parse a console error's stack trace into structured source locations.
+
+        Returns the error message, parsed file:line:column for each stack frame,
+        and identifies the primary app-code location (skipping node_modules, CDN, etc.).
+        Use this to quickly find which source file to fix.
+
+        Args:
+            error_index: Index of the error (0 = most recent, 1 = second most recent).
+        """
+        errors = store.get_errors(limit=50, since_minutes=60)
+        if not errors:
+            return "No console errors captured."
+        if error_index >= len(errors):
+            return f"Error index {error_index} out of range. Only {len(errors)} errors available."
+
+        # Get error from the end (most recent first)
+        error = errors[-(error_index + 1)]
+        parsed = parse_error(error.message, error.stack)
+        result = parsed.to_dict()
+        result["raw_stack"] = error.stack[:2000] if error.stack else ""
+        result["source_file"] = error.source
+        result["line"] = error.lineno
+        result["column"] = error.colno
+        return json.dumps(result, indent=2)
 
     # ═══════════════════════════════════════════════════════════════
     # BROWSER ACTION TOOLS (8) — interact with the page
