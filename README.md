@@ -160,8 +160,16 @@ Three ways, from easiest to manual:
 - The server auto-copies the auth token to your clipboard on startup
 - Click the Argus icon → **Paste Token from Clipboard** → done
 
+**From terminal:**
+
+```bash
+cd server
+python -m argus token
+# Prints the token and copies it to clipboard
+```
+
 **Manual:**
-- Token is saved in `~/.argus/config.json` — copy it and paste in the extension's manual setup section
+- Token is also saved in `~/.argus/config.json`
 
 ### 5. Use It
 
