@@ -105,7 +105,3 @@ class IngestSnapshotRequest(BaseModel):
     page_info: PageInfo | None = None
     selected_element: ElementCapture | None = None
     timestamp: float
-
-
-
-

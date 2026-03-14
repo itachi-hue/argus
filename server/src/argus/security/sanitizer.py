@@ -2,16 +2,18 @@
 
 from argus.core.models import NetworkEvent
 
-SENSITIVE_HEADERS = frozenset({
-    "authorization",
-    "cookie",
-    "set-cookie",
-    "x-api-key",
-    "x-auth-token",
-    "proxy-authorization",
-    "x-csrf-token",
-    "x-xsrf-token",
-})
+SENSITIVE_HEADERS = frozenset(
+    {
+        "authorization",
+        "cookie",
+        "set-cookie",
+        "x-api-key",
+        "x-auth-token",
+        "proxy-authorization",
+        "x-csrf-token",
+        "x-xsrf-token",
+    }
+)
 
 
 class Sanitizer:
@@ -19,10 +21,7 @@ class Sanitizer:
         self.max_body = max_body_length
 
     def sanitize_headers(self, headers: dict[str, str]) -> dict[str, str]:
-        return {
-            k: "[REDACTED]" if k.lower() in SENSITIVE_HEADERS else v
-            for k, v in headers.items()
-        }
+        return {k: "[REDACTED]" if k.lower() in SENSITIVE_HEADERS else v for k, v in headers.items()}
 
     def truncate(self, text: str | None) -> str | None:
         if text is None:
@@ -43,9 +42,3 @@ class Sanitizer:
 
     def sanitize_network_events(self, events: list[NetworkEvent]) -> list[NetworkEvent]:
         return [self.sanitize_network_event(e) for e in events]
-
-
-
-
-
-

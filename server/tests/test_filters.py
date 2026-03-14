@@ -82,17 +82,11 @@ class TestErrorFiltering:
     def test_filter_batch(self):
         f = NoiseFilter()
         errors = [
-            ErrorEvent(message="real error", source="http://localhost:3000/app.js",
-                       stack="at app.js:10", timestamp=1.0),
-            ErrorEvent(message="ext error", source="chrome-extension://abc/x.js",
-                       stack="", timestamp=2.0),
+            ErrorEvent(
+                message="real error", source="http://localhost:3000/app.js", stack="at app.js:10", timestamp=1.0
+            ),
+            ErrorEvent(message="ext error", source="chrome-extension://abc/x.js", stack="", timestamp=2.0),
         ]
         kept = f.filter_errors(errors)
         assert len(kept) == 1
         assert kept[0].message == "real error"
-
-
-
-
-
-

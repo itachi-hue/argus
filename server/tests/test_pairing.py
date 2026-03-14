@@ -79,16 +79,14 @@ class TestPairFlow:
 
     def test_token_works_for_api(self, client, auth_headers, store):
         """Token obtained via pairing should work for regular API calls."""
-        r = client.post("/api/ingest/events", json={
-            "errors": [make_error()],
-            "console_events": [],
-            "network_events": [],
-        }, headers=auth_headers)
+        r = client.post(
+            "/api/ingest/events",
+            json={
+                "errors": [make_error()],
+                "console_events": [],
+                "network_events": [],
+            },
+            headers=auth_headers,
+        )
         assert r.status_code == 200
         assert len(store.get_errors()) == 1
-
-
-
-
-
-

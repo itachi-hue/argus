@@ -5,12 +5,10 @@ from pydantic import ValidationError
 
 from argus.core.models import (
     ConsoleEvent,
-    ElementCapture,
     ErrorEvent,
     IngestEventsRequest,
     IngestSnapshotRequest,
     NetworkEvent,
-    PageInfo,
     Screenshot,
 )
 
@@ -24,8 +22,13 @@ class TestErrorEvent:
 
     def test_full(self):
         e = ErrorEvent(
-            message="TypeError", source="app.js", lineno=10, colno=5,
-            stack="at app.js:10:5", timestamp=1000.0, occurrence_count=3,
+            message="TypeError",
+            source="app.js",
+            lineno=10,
+            colno=5,
+            stack="at app.js:10:5",
+            timestamp=1000.0,
+            occurrence_count=3,
         )
         assert e.lineno == 10
         assert e.occurrence_count == 3
@@ -42,8 +45,14 @@ class TestNetworkEvent:
         assert n.error is None
 
     def test_failure(self):
-        n = NetworkEvent(method="POST", url="http://localhost/api", status=500,
-                         status_text="Internal Server Error", timestamp=1.0, error=None)
+        n = NetworkEvent(
+            method="POST",
+            url="http://localhost/api",
+            status=500,
+            status_text="Internal Server Error",
+            timestamp=1.0,
+            error=None,
+        )
         assert n.status == 500
 
     def test_network_error(self):
@@ -65,8 +74,13 @@ class TestConsoleEvent:
 
 class TestScreenshot:
     def test_basic(self):
-        s = Screenshot(data="abc123", url="http://localhost", timestamp=1.0,
-                       viewport={"width": 1280, "height": 720}, trigger="hotkey")
+        s = Screenshot(
+            data="abc123",
+            url="http://localhost",
+            timestamp=1.0,
+            viewport={"width": 1280, "height": 720},
+            trigger="hotkey",
+        )
         assert s.viewport.width == 1280
         assert s.trigger == "hotkey"
 
@@ -90,17 +104,16 @@ class TestIngestEventsRequest:
 class TestIngestSnapshotRequest:
     def test_full(self):
         r = IngestSnapshotRequest(
-            screenshot={"data": "x", "url": "http://x", "timestamp": 1.0,
-                        "viewport": {"width": 100, "height": 100}, "trigger": "hotkey"},
+            screenshot={
+                "data": "x",
+                "url": "http://x",
+                "timestamp": 1.0,
+                "viewport": {"width": 100, "height": 100},
+                "trigger": "hotkey",
+            },
             errors=[{"message": "err", "timestamp": 1.0}],
             page_info={"url": "http://x", "title": "X", "viewport": {"width": 100, "height": 100}, "timestamp": 1.0},
             timestamp=1.0,
         )
         assert r.screenshot is not None
         assert r.page_info.title == "X"
-
-
-
-
-
-

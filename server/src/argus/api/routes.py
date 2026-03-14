@@ -105,6 +105,3 @@ def create_router(
         return {"cleared": True}
 
     return router
-
-
-

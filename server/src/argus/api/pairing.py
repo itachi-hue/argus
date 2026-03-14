@@ -56,8 +56,8 @@ def create_pairing_router(token: str) -> tuple[APIRouter, PairingManager]:
         code = manager.generate_code()
         # Print to stderr so the user sees it in terminal
         print(f"\n🔗 Extension pairing code:  {code}", file=sys.stderr)
-        print(f"   Enter this code in the extension popup to connect.", file=sys.stderr)
-        print(f"   Expires in 2 minutes.\n", file=sys.stderr)
+        print("   Enter this code in the extension popup to connect.", file=sys.stderr)
+        print("   Expires in 2 minutes.\n", file=sys.stderr)
         return {"message": "Check your terminal for the 4-digit code."}
 
     @router.post("/pair/confirm")
@@ -71,4 +71,3 @@ def create_pairing_router(token: str) -> tuple[APIRouter, PairingManager]:
         )
 
     return router, manager
-

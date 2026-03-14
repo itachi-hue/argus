@@ -39,13 +39,11 @@ def optimize_screenshot(base64_data: str, max_width: int = MAX_WIDTH, quality: i
         optimized_kb = len(optimized) / 1024
         logger.debug(
             "Screenshot optimized: %.1fKB → %.1fKB (%.0f%% reduction)",
-            original_kb, optimized_kb, (1 - optimized_kb / original_kb) * 100
+            original_kb,
+            optimized_kb,
+            (1 - optimized_kb / original_kb) * 100,
         )
         return optimized
     except Exception:
         logger.warning("Failed to optimize screenshot, using original", exc_info=True)
         return base64_data
-
-
-
-

@@ -5,32 +5,55 @@ from urllib.parse import urlparse
 
 BLOCKED_DOMAINS: set[str] = {
     # Analytics
-    "google-analytics.com", "googletagmanager.com", "www.google-analytics.com",
+    "google-analytics.com",
+    "googletagmanager.com",
+    "www.google-analytics.com",
     "ssl.google-analytics.com",
     # Facebook
-    "facebook.net", "connect.facebook.net", "fbcdn.net",
+    "facebook.net",
+    "connect.facebook.net",
+    "fbcdn.net",
     # Error tracking (we don't need to monitor the monitor)
-    "sentry.io", "sentry-cdn.com", "browser.sentry-cdn.com",
+    "sentry.io",
+    "sentry-cdn.com",
+    "browser.sentry-cdn.com",
     # Session replay / heatmaps
-    "hotjar.com", "static.hotjar.com", "clarity.ms",
-    "mouseflow.com", "smartlook.com",
-    "fullstory.com", "rs.fullstory.com",
-    "logrocket.com", "cdn.lr-ingest.io",
+    "hotjar.com",
+    "static.hotjar.com",
+    "clarity.ms",
+    "mouseflow.com",
+    "smartlook.com",
+    "fullstory.com",
+    "rs.fullstory.com",
+    "logrocket.com",
+    "cdn.lr-ingest.io",
     # Product analytics
-    "segment.com", "cdn.segment.com",
-    "mixpanel.com", "cdn.mixpanel.com",
-    "amplitude.com", "cdn.amplitude.com",
-    "heap-analytics.com", "heapanalytics.com",
-    "posthog.com", "plausible.io",
+    "segment.com",
+    "cdn.segment.com",
+    "mixpanel.com",
+    "cdn.mixpanel.com",
+    "amplitude.com",
+    "cdn.amplitude.com",
+    "heap-analytics.com",
+    "heapanalytics.com",
+    "posthog.com",
+    "plausible.io",
     # APM
-    "newrelic.com", "js-agent.newrelic.com", "nr-data.net",
+    "newrelic.com",
+    "js-agent.newrelic.com",
+    "nr-data.net",
     "browser-intake-datadoghq.com",
-    "rollbar.com", "cdn.rollbar.com",
-    "bugsnag.com", "notify.bugsnag.com",
+    "rollbar.com",
+    "cdn.rollbar.com",
+    "bugsnag.com",
+    "notify.bugsnag.com",
     # Chat / support
-    "intercom.io", "widget.intercom.io",
+    "intercom.io",
+    "widget.intercom.io",
     # Ads
-    "doubleclick.net", "googlesyndication.com", "adservice.google.com",
+    "doubleclick.net",
+    "googlesyndication.com",
+    "adservice.google.com",
 }
 
 _BLOCKED_URL_PATTERNS: list[re.Pattern] = [
@@ -98,9 +121,7 @@ class NoiseFilter:
         if stack:
             frames = [line.strip() for line in stack.split("\n") if line.strip()]
             if frames and all(
-                "chrome-extension://" in f or "moz-extension://" in f
-                for f in frames
-                if "at " in f or "@" in f
+                "chrome-extension://" in f or "moz-extension://" in f for f in frames if "at " in f or "@" in f
             ):
                 return False
         return True
@@ -110,9 +131,3 @@ class NoiseFilter:
 
     def filter_errors(self, errors: list) -> list:
         return [e for e in errors if self.should_keep_error(e.source, e.stack)]
-
-
-
-
-
-

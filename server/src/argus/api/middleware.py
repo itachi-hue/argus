@@ -3,6 +3,7 @@
 import hmac
 import time
 from collections import deque
+from typing import ClassVar
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
@@ -15,7 +16,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.token = token
 
     # Paths that don't require auth
-    PUBLIC_PATHS = {"/api/health", "/api/pair", "/api/pair/confirm"}
+    PUBLIC_PATHS: ClassVar[set[str]] = {"/api/health", "/api/pair", "/api/pair/confirm"}
 
     async def dispatch(self, request: Request, call_next):
         if request.url.path in self.PUBLIC_PATHS:

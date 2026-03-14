@@ -1,26 +1,45 @@
-# 🔭 Argus — Give Your AI Agent Eyes
+<p align="center">
+  <img src="extension/icons/icon-128.png" alt="Argus" width="80" />
+</p>
 
-Argus bridges the gap between your running app and your AI coding agent. It captures what's happening in the browser — console errors, network failures, screenshots, UI element details — and exposes it all as MCP tools that any AI agent can call.
+<h1 align="center">Argus</h1>
 
-**The problem:** AI agents can read and write your code, but they're blind to what happens when you run it. You manually copy errors, describe UI bugs, paste network failures. Dozens of times a day.
+<p align="center">
+  <strong>Give your AI coding agent eyes into the browser.</strong>
+</p>
 
-**The fix:** Argus captures runtime context automatically. Your agent calls `get_console_errors()` and sees the `TypeError`. Calls `get_screenshot()` and sees the broken UI. Calls `get_network_failures()` and sees the `401`. Then fixes the code. No copy-pasting. No describing what you saw.
+<p align="center">
+  <a href="https://github.com/itachi-hue/argus/actions/workflows/test.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/test.yml/badge.svg" alt="Tests" /></a>
+  <a href="https://github.com/itachi-hue/argus/actions/workflows/lint.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/lint.yml/badge.svg" alt="Lint" /></a>
+  <a href="https://github.com/itachi-hue/argus/actions/workflows/build.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+" />
+  <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible" />
+</p>
+
+---
+
+AI agents can read and write your code — but they're **blind** to what happens when you run it.
+
+Argus captures browser runtime context — **console errors, network failures, screenshots, UI element details** — and exposes it all as [MCP](https://modelcontextprotocol.io/) tools that any AI agent can call.
+
+No more copy-pasting errors. No more describing what you see. Your agent calls `get_console_errors()` and sees the `TypeError`. Calls `get_screenshot()` and sees the broken layout. Calls `get_network_failures()` and sees the `401`. Then fixes the code.
 
 ## How It Works
 
 ```
-Browser (your app) → Chrome Extension (captures) → MCP Server (stores) → AI Agent (queries + fixes)
+Browser → Chrome Extension (captures) → MCP Server (stores) → AI Agent (queries + fixes)
 ```
 
-1. **Chrome Extension** monitors your app passively — console errors, network requests, console logs
-2. You hit **Ctrl+Shift+L** when something breaks — extension captures a screenshot + all context
-3. You right-click any element → **"Capture for AI Agent"** — captures element details, styles, and a highlighted screenshot
-4. Your agent calls MCP tools like `get_console_errors()`, `get_screenshot()`, `get_selected_element()`
-5. Agent sees the problem, finds the code, makes the fix
+1. **Chrome Extension** monitors your app — console errors, network requests, console logs
+2. **Auto-capture** takes screenshots on page load, tab switch, clicks, and periodically
+3. **Hotkey** `Ctrl+Shift+L` captures a screenshot + all current context on demand
+4. **Right-click** any element → "Capture for AI Agent" to grab element details + styles
+5. **Your agent** calls MCP tools like `get_console_errors()`, `get_screenshot()`, `get_selected_element()` and fixes the code
 
 ## Works With
 
-Any MCP-compatible client: **Cursor**, **Claude Code**, **Claude Desktop**, **Windsurf**, **Cline**, **Continue**, and more.
+Any MCP-compatible client: **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** · **Cline** · **Continue** · and more.
 
 ## Quick Start
 
@@ -33,23 +52,10 @@ pip install -e .
 
 ### 2. Connect to Your AI Agent
 
-#### Cursor
+<details>
+<summary><strong>Cursor</strong></summary>
 
-Add to your project's `.cursor/mcp.json` (or global `~/.cursor/mcp.json`):
-
-```json
-{
-  "mcpServers": {
-    "argus": {
-      "command": "python",
-      "args": ["-m", "argus"],
-      "cwd": "/path/to/project_argus/server"
-    }
-  }
-}
-```
-
-On Windows, use the full path:
+Add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
 
 ```json
 {
@@ -57,25 +63,27 @@ On Windows, use the full path:
     "argus": {
       "command": "python",
       "args": ["-m", "argus"],
-      "cwd": "C:\\Users\\YourName\\projects\\project_argus\\server"
+      "cwd": "/path/to/argus/server"
     }
   }
 }
 ```
 
-After saving, restart Cursor. You should see **argus** listed under **Settings → MCP** with a green dot.
+Restart Cursor. Look for **argus** with a green dot under **Settings → MCP**.
+</details>
 
-#### Claude Code
+<details>
+<summary><strong>Claude Code</strong></summary>
 
 ```bash
 claude mcp add argus -- python -m argus
 ```
+</details>
 
-That's it. Claude Code will start the server automatically when you open a session.
+<details>
+<summary><strong>Claude Desktop</strong></summary>
 
-#### Claude Desktop
-
-Add to `claude_desktop_config.json` (find it via **Settings → Developer → Edit Config**):
+Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 
 ```json
 {
@@ -83,55 +91,28 @@ Add to `claude_desktop_config.json` (find it via **Settings → Developer → Ed
     "argus": {
       "command": "python",
       "args": ["-m", "argus"],
-      "cwd": "/path/to/project_argus/server"
+      "cwd": "/path/to/argus/server"
     }
   }
 }
 ```
+</details>
 
-Restart Claude Desktop after saving.
-
-#### Remote / Cloud / SSE
-
-Argus also supports MCP over SSE for remote connections. Start the server in SSE mode:
-
-```bash
-cd server
-ARGUS_TRANSPORT=sse python -m argus
-# or on Windows PowerShell:
-$env:ARGUS_TRANSPORT="sse"; python -m argus
-```
-
-Then connect your MCP client to the SSE endpoint:
-
-```json
-{
-  "mcpServers": {
-    "argus": {
-      "url": "http://127.0.0.1:42777/mcp/sse"
-    }
-  }
-}
-```
-
-For cloud deployment, change the host/port and point the Chrome extension + MCP client to the cloud URL. Same tools, same API — just a different address.
-
-#### Other MCP Clients (Windsurf, Cline, Continue, etc.)
-
-Any client that supports MCP stdio or SSE transport works.
+<details>
+<summary><strong>Other MCP Clients (Windsurf, Cline, Continue, etc.)</strong></summary>
 
 **stdio** (local, default):
-
 ```
 command: python -m argus
-working directory: /path/to/project_argus/server
+working directory: /path/to/argus/server
 ```
 
-**SSE** (remote-ready):
-
+**SSE** (remote):
+```bash
+ARGUS_TRANSPORT=sse python -m argus
+# Connect your client to http://127.0.0.1:42777/mcp/sse
 ```
-url: http://127.0.0.1:42777/mcp/sse
-```
+</details>
 
 ### 3. Install the Chrome Extension
 
@@ -141,129 +122,127 @@ npm install
 npm run build
 ```
 
-Then load it in Chrome:
-
 1. Open `chrome://extensions`
-2. Enable **Developer mode** (toggle in top-right)
+2. Enable **Developer mode**
 3. Click **Load unpacked** → select the `extension/` folder
 
-### 4. Connect Extension to Server
+### 4. Pair Extension to Server
 
-Three ways, from easiest to manual:
+Click the Argus extension icon → **Connect to Server** → enter the 4-digit code from your terminal. Done.
 
-**One-click pairing** (recommended):
-1. Click the Argus extension icon → **Connect to Server**
-2. A 4-digit code appears in your terminal
-3. Type it in the extension popup → connected!
-
-**Paste from clipboard:**
-- The server auto-copies the auth token to your clipboard on startup
-- Click the Argus icon → **Paste Token from Clipboard** → done
-
-**From terminal:**
-
-```bash
-cd server
-python -m argus token
-# Prints the token and copies it to clipboard
-```
-
-**Manual:**
-- Token is also saved in `~/.argus/config.json`
+Alternatives: **Paste Token from Clipboard** or enter manually via **Manual setup**.
 
 ### 5. Use It
 
-1. Open your web app in Chrome
-2. **Automatic:** Errors and network requests are captured passively in the background
-3. **Hotkey:** Hit **Ctrl+Shift+L** (Mac: **Cmd+Shift+L**) to capture a screenshot + all current context
-4. **Right-click:** Right-click any element → **Capture for AI Agent** to capture element details + styles
-5. **Ask your agent:**
-   - *"Check the browser for errors and fix them"*
-   - *"Look at the screenshot and fix the layout"*
-   - *"The API call is failing, check network failures and fix the backend"*
-   - *"What does the browser console show?"*
+Open your web app in Chrome and talk to your agent:
+
+- *"Check the browser for errors and fix them"*
+- *"Look at the screenshot and fix the layout"*
+- *"The API call is failing, check network failures"*
+- *"What does the browser console show?"*
 
 ## MCP Tools
 
-| Tool | Description |
+| Tool | What it does |
 |------|-------------|
-| `get_console_errors` | Recent JS errors with stack traces |
+| `get_console_errors` | JS errors with stack traces |
 | `get_console_logs` | Console output (log, warn, info, debug) |
-| `get_network_failures` | Failed HTTP requests (4xx, 5xx, network errors) |
+| `get_network_failures` | Failed HTTP requests (4xx, 5xx) |
 | `get_network_log` | All recent network requests |
-| `get_screenshot` | Browser screenshot (JPEG) |
-| `list_screenshots` | List all stored screenshots with metadata |
+| `get_screenshot` | Browser screenshot as native image |
+| `list_screenshots` | Timeline of all captured screenshots with metadata |
 | `get_selected_element` | Right-click captured element (selector, styles, HTML) |
 | `get_page_info` | Current page URL, title, viewport |
 | `clear_context` | Clear stored context |
 
+## Features
+
+- **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
+- **Configurable** — capture interval, max screenshots, toggle per-feature from the popup
+- **Smart screenshots** — JPEG compressed, resized, sent as native image content blocks (low token cost)
+- **Noise filtering** — blocks analytics, HMR, browser extension traffic automatically
+- **Error deduplication** — same error in a loop won't flood the buffer
+- **Sensitive data stripping** — `Authorization`, `Cookie` headers redacted automatically
+- **Descriptive timeline** — each screenshot has title + description so the AI picks the right one
+- **Local-first** — all data stays on your machine, server binds to `127.0.0.1` only
+
 ## Configuration
 
-### MCP Server
-
-Environment variables (or `~/.argus/config.json`):
+### Server (environment variables)
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `ARGUS_TRANSPORT` | `stdio` | MCP transport: `stdio`, `sse`, or `all` |
+| `ARGUS_TRANSPORT` | `stdio` | `stdio`, `sse`, or `all` |
 | `ARGUS_PORT` | `42777` | HTTP server port |
-| `ARGUS_AUTH_TOKEN` | auto-generated | Auth token (persisted in `~/.argus/config.json`) |
+| `ARGUS_AUTH_TOKEN` | auto-generated | Auth token |
 | `ARGUS_MAX_ERRORS` | `100` | Max errors in buffer |
-| `ARGUS_MAX_SCREENSHOTS` | `10` | Max screenshots stored |
+| `ARGUS_MAX_SCREENSHOTS` | `15` | Max screenshots stored |
 | `ARGUS_RATE_LIMIT` | `120` | Max requests/minute |
 
-### Chrome Extension
+### Extension (popup UI)
 
-Configure via the extension popup:
-- Server URL and auth token
-- Toggle console log / network capture
-- Domain blocklist/allowlist
-
-## Architecture
-
-Two components, one loop:
-
-- **Chrome Extension** (TypeScript, Manifest V3) — captures browser events, screenshots, element details. Sends to MCP server via HTTP.
-- **MCP Server** (Python) — receives data, filters noise, deduplicates errors, strips sensitive headers, stores in memory. Exposes MCP tools via stdio (local) or SSE (remote/cloud).
-
-See [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) for the full technical design.
-
-## Security
-
-- HTTP server binds to `127.0.0.1` only — never exposed to network
-- Auth token required on every request
-- Sensitive headers (`Authorization`, `Cookie`) automatically redacted
-- Request/response bodies truncated to 2000 chars
-- All data in-memory only — cleared on server restart
-- Minimal Chrome extension permissions: `activeTab`, `scripting`, `storage`, `contextMenus`
+| Setting | Default | Description |
+|---------|---------|-------------|
+| Auto Screenshots | On | Capture on page load, tab switch, click, periodic |
+| Capture interval | 30 sec | Periodic capture frequency (10–300s) |
+| Max screenshots | 15 | Rolling buffer size (3–50) |
+| Console & Errors | On | Capture console logs and JS errors |
+| Network Traffic | On | Capture HTTP requests |
 
 ## Project Structure
 
 ```
-project_argus/
-├── server/           # Python MCP server
+argus/
+├── server/                     # Python MCP server
 │   ├── src/argus/
-│   │   ├── main.py          # Entry point
-│   │   ├── config.py        # Settings
-│   │   ├── mcp/tools.py     # MCP tool definitions
-│   │   ├── api/             # HTTP server (FastAPI)
-│   │   ├── core/            # Models, filters, dedup
-│   │   ├── store/           # Storage abstraction
-│   │   └── security/        # Sanitizer
-│   ├── tests/               # 103 tests
+│   │   ├── main.py             # Entry point
+│   │   ├── config.py           # Settings (pydantic-settings)
+│   │   ├── mcp/tools.py        # MCP tool definitions
+│   │   ├── api/                # FastAPI HTTP server
+│   │   ├── core/               # Models, filters, dedup, image optimization
+│   │   ├── store/              # Storage abstraction (in-memory)
+│   │   └── security/           # Sensitive data sanitizer
+│   ├── tests/                  # 111 tests
 │   └── pyproject.toml
-├── extension/        # Chrome extension
+├── extension/                  # Chrome extension (Manifest V3)
 │   ├── src/
-│   │   ├── injected/        # Page-context monitors
-│   │   ├── content/         # Bridge + element capture
-│   │   ├── background/      # Service worker
-│   │   └── popup/           # Settings UI
+│   │   ├── background/         # Service worker
+│   │   ├── content/            # Content script + click capture
+│   │   ├── injected/           # Page-context monitors
+│   │   └── popup/              # Settings UI
 │   └── manifest.json
-└── docs/
-    └── ARCHITECTURE.md
+├── docs/
+│   └── ARCHITECTURE.md         # Technical architecture
+├── .github/workflows/          # CI: lint, test, build
+└── LICENSE                     # MIT
+```
+
+## Security
+
+- Server binds to `127.0.0.1` only — never exposed to network
+- Auth token required on every request (constant-time comparison)
+- `Authorization`, `Cookie`, `Set-Cookie` headers automatically redacted
+- Request/response bodies truncated to 2000 chars
+- All data in-memory only — cleared on server restart
+- Rate limiting: 120 req/min
+
+## Development
+
+```bash
+# Server
+cd server
+pip install -e ".[dev]"
+pytest tests/ -v              # run tests
+ruff check src/ tests/        # lint
+ruff format src/ tests/       # format
+
+# Extension
+cd extension
+npm install
+npm run build                 # production build
+npm run watch                 # dev mode with auto-rebuild
 ```
 
 ## License
 
-Proprietary. All rights reserved.
-
+[MIT](LICENSE) — Vivek Rao

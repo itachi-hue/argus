@@ -55,7 +55,10 @@ class TestNetworkEventSanitization:
     def test_full_sanitization(self):
         s = Sanitizer(max_body_length=20)
         event = NetworkEvent(
-            method="POST", url="http://localhost/api", status=200, timestamp=1.0,
+            method="POST",
+            url="http://localhost/api",
+            status=200,
+            timestamp=1.0,
             request_headers={"Authorization": "Bearer secret", "Accept": "application/json"},
             response_headers={"Set-Cookie": "session=abc"},
             request_body="a" * 100,
@@ -71,16 +74,8 @@ class TestNetworkEventSanitization:
     def test_batch_sanitization(self):
         s = Sanitizer()
         events = [
-            NetworkEvent(method="GET", url="http://x/a", timestamp=1.0,
-                         request_headers={"Authorization": "Bearer x"}),
-            NetworkEvent(method="GET", url="http://x/b", timestamp=2.0,
-                         request_headers={"Authorization": "Bearer y"}),
+            NetworkEvent(method="GET", url="http://x/a", timestamp=1.0, request_headers={"Authorization": "Bearer x"}),
+            NetworkEvent(method="GET", url="http://x/b", timestamp=2.0, request_headers={"Authorization": "Bearer y"}),
         ]
         sanitized = s.sanitize_network_events(events)
         assert all(e.request_headers.get("Authorization") == "[REDACTED]" for e in sanitized)
-
-
-
-
-
-

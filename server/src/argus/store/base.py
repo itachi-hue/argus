@@ -43,10 +43,14 @@ class ContextStore(ABC):
     def get_console_events(self, limit: int = 50, level: str | None = None) -> list[ConsoleEvent]: ...
 
     @abstractmethod
-    def get_network_events(self, limit: int = 50, method: str | None = None, url_pattern: str | None = None) -> list[NetworkEvent]: ...
+    def get_network_events(
+        self, limit: int = 50, method: str | None = None, url_pattern: str | None = None
+    ) -> list[NetworkEvent]: ...
 
     @abstractmethod
-    def get_network_failures(self, limit: int = 20, status_filter: str | None = None, url_pattern: str | None = None) -> list[NetworkEvent]: ...
+    def get_network_failures(
+        self, limit: int = 20, status_filter: str | None = None, url_pattern: str | None = None
+    ) -> list[NetworkEvent]: ...
 
     @abstractmethod
     def get_screenshot(self, index: int = 0) -> Screenshot | None: ...
@@ -65,7 +69,3 @@ class ContextStore(ABC):
 
     @abstractmethod
     def clear(self, event_type: str | None = None) -> None: ...
-
-
-
-

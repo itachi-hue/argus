@@ -82,15 +82,21 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
         """
         screenshot = store.get_screenshot(index=index)
         if not screenshot:
-            return [TextContent(type="text", text="No screenshots captured. Ask the user to press the Argus hotkey in the browser.")]
+            return [
+                TextContent(
+                    type="text", text="No screenshots captured. Ask the user to press the Argus hotkey in the browser."
+                )
+            ]
 
         # Return metadata as text + image as native image content block
-        metadata = json.dumps({
-            "url": screenshot.url,
-            "timestamp": screenshot.timestamp,
-            "viewport": screenshot.viewport.model_dump(),
-            "trigger": screenshot.trigger,
-        })
+        metadata = json.dumps(
+            {
+                "url": screenshot.url,
+                "timestamp": screenshot.timestamp,
+                "viewport": screenshot.viewport.model_dump(),
+                "trigger": screenshot.trigger,
+            }
+        )
         return [
             TextContent(type="text", text=metadata),
             ImageContent(type="image", data=screenshot.data, mimeType="image/jpeg"),
@@ -140,6 +146,3 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
         return f"Cleared {'all context' if not event_type else event_type}."
 
     return mcp
-
-
-

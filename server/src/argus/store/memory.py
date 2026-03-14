@@ -122,9 +122,15 @@ class InMemoryStore(ContextStore):
     def get_screenshot_list(self) -> list[dict]:
         with self._lock:
             return [
-                {"index": i, "description": s.description, "url": s.url, "title": s.title,
-                 "timestamp": s.timestamp, "trigger": s.trigger,
-                 "viewport": {"width": s.viewport.width, "height": s.viewport.height}}
+                {
+                    "index": i,
+                    "description": s.description,
+                    "url": s.url,
+                    "title": s.title,
+                    "timestamp": s.timestamp,
+                    "trigger": s.trigger,
+                    "viewport": {"width": s.viewport.width, "height": s.viewport.height},
+                }
                 for i, s in enumerate(reversed(self._screenshots))
             ]
 
@@ -133,7 +139,7 @@ class InMemoryStore(ContextStore):
             self._max_screenshots = max(1, max_screenshots)
             # Trim if needed
             if len(self._screenshots) > self._max_screenshots:
-                self._screenshots = self._screenshots[-self._max_screenshots:]
+                self._screenshots = self._screenshots[-self._max_screenshots :]
 
     def get_selected_element(self) -> ElementCapture | None:
         with self._lock:
@@ -162,7 +168,3 @@ class InMemoryStore(ContextStore):
                 self._screenshots.clear()
             elif event_type == "element":
                 self._selected_element = None
-
-
-
-

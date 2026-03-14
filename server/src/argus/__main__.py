@@ -13,6 +13,7 @@ def cli():
 
     if not args or args[0] not in ("token",):
         from argus.main import main
+
         main()
         return
 

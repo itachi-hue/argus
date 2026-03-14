@@ -4,7 +4,16 @@ import json
 import time
 
 from argus.config import Settings
-from argus.core.models import ConsoleEvent, ElementCapture, ErrorEvent, NetworkEvent, PageInfo, Screenshot, Viewport, BoundingRect
+from argus.core.models import (
+    BoundingRect,
+    ConsoleEvent,
+    ElementCapture,
+    ErrorEvent,
+    NetworkEvent,
+    PageInfo,
+    Screenshot,
+    Viewport,
+)
 from argus.mcp.tools import create_mcp_server
 from argus.store.memory import InMemoryStore
 
@@ -38,9 +47,11 @@ class TestGetConsoleErrors:
 
     def test_with_errors(self):
         store, mcp = _setup()
-        store.add_errors([
-            ErrorEvent(message="TypeError: x is undefined", source="app.js", lineno=42, timestamp=_now()),
-        ])
+        store.add_errors(
+            [
+                ErrorEvent(message="TypeError: x is undefined", source="app.js", lineno=42, timestamp=_now()),
+            ]
+        )
         fn = _get_tool_fn(mcp, "get_console_errors")
         result = fn(since_minutes=5)
         data = json.loads(result)
@@ -66,10 +77,12 @@ class TestGetConsoleLogs:
 
     def test_with_logs(self):
         store, mcp = _setup()
-        store.add_console_events([
-            ConsoleEvent(level="log", args=["user clicked checkout"], timestamp=1000.0),
-            ConsoleEvent(level="warn", args=["deprecation warning"], timestamp=1001.0),
-        ])
+        store.add_console_events(
+            [
+                ConsoleEvent(level="log", args=["user clicked checkout"], timestamp=1000.0),
+                ConsoleEvent(level="warn", args=["deprecation warning"], timestamp=1001.0),
+            ]
+        )
         fn = _get_tool_fn(mcp, "get_console_logs")
         result = fn()
         data = json.loads(result)
@@ -77,10 +90,12 @@ class TestGetConsoleLogs:
 
     def test_filter_by_level(self):
         store, mcp = _setup()
-        store.add_console_events([
-            ConsoleEvent(level="log", args=["info"], timestamp=1.0),
-            ConsoleEvent(level="warn", args=["warn"], timestamp=2.0),
-        ])
+        store.add_console_events(
+            [
+                ConsoleEvent(level="log", args=["info"], timestamp=1.0),
+                ConsoleEvent(level="warn", args=["warn"], timestamp=2.0),
+            ]
+        )
         fn = _get_tool_fn(mcp, "get_console_logs")
         result = fn(level="warn")
         data = json.loads(result)
@@ -97,11 +112,13 @@ class TestGetNetworkFailures:
 
     def test_only_returns_failures(self):
         store, mcp = _setup()
-        store.add_network_events([
-            NetworkEvent(method="GET", url="http://x/ok", status=200, timestamp=1.0),
-            NetworkEvent(method="POST", url="http://x/fail", status=500, timestamp=2.0),
-            NetworkEvent(method="GET", url="http://x/auth", status=401, timestamp=3.0),
-        ])
+        store.add_network_events(
+            [
+                NetworkEvent(method="GET", url="http://x/ok", status=200, timestamp=1.0),
+                NetworkEvent(method="POST", url="http://x/fail", status=500, timestamp=2.0),
+                NetworkEvent(method="GET", url="http://x/auth", status=401, timestamp=3.0),
+            ]
+        )
         fn = _get_tool_fn(mcp, "get_network_failures")
         result = fn()
         data = json.loads(result)
@@ -113,10 +130,12 @@ class TestGetNetworkFailures:
 class TestGetNetworkLog:
     def test_returns_all(self):
         store, mcp = _setup()
-        store.add_network_events([
-            NetworkEvent(method="GET", url="http://x/a", status=200, timestamp=1.0),
-            NetworkEvent(method="POST", url="http://x/b", status=201, timestamp=2.0),
-        ])
+        store.add_network_events(
+            [
+                NetworkEvent(method="GET", url="http://x/a", status=200, timestamp=1.0),
+                NetworkEvent(method="POST", url="http://x/b", status=201, timestamp=2.0),
+            ]
+        )
         fn = _get_tool_fn(mcp, "get_network_log")
         result = fn()
         data = json.loads(result)
@@ -134,10 +153,15 @@ class TestGetScreenshot:
 
     def test_returns_screenshot_as_image_content(self):
         store, mcp = _setup()
-        store.add_screenshot(Screenshot(
-            data="dGVzdA==", url="http://localhost:3000", timestamp=1000.0,
-            viewport=Viewport(width=1280, height=720), trigger="hotkey",
-        ))
+        store.add_screenshot(
+            Screenshot(
+                data="dGVzdA==",
+                url="http://localhost:3000",
+                timestamp=1000.0,
+                viewport=Viewport(width=1280, height=720),
+                trigger="hotkey",
+            )
+        )
         fn = _get_tool_fn(mcp, "get_screenshot")
         result = fn()
         # Returns [TextContent(metadata), ImageContent(image)]
@@ -163,10 +187,15 @@ class TestListScreenshots:
     def test_lists_metadata(self):
         store, mcp = _setup()
         for i in range(3):
-            store.add_screenshot(Screenshot(
-                data=f"img{i}", url=f"http://x/{i}", timestamp=float(i),
-                viewport=Viewport(width=100, height=100), trigger="hotkey",
-            ))
+            store.add_screenshot(
+                Screenshot(
+                    data=f"img{i}",
+                    url=f"http://x/{i}",
+                    timestamp=float(i),
+                    viewport=Viewport(width=100, height=100),
+                    trigger="hotkey",
+                )
+            )
         fn = _get_tool_fn(mcp, "list_screenshots")
         result = fn()
         data = json.loads(result)
@@ -185,12 +214,17 @@ class TestGetSelectedElement:
 
     def test_returns_element(self):
         store, mcp = _setup()
-        store.set_selected_element(ElementCapture(
-            selector="button.submit", computed_styles={"color": "red"},
-            html="<button>X</button>", text="X",
-            bounding_rect=BoundingRect(x=0, y=0, width=100, height=40),
-            timestamp=1.0, url="http://x",
-        ))
+        store.set_selected_element(
+            ElementCapture(
+                selector="button.submit",
+                computed_styles={"color": "red"},
+                html="<button>X</button>",
+                text="X",
+                bounding_rect=BoundingRect(x=0, y=0, width=100, height=40),
+                timestamp=1.0,
+                url="http://x",
+            )
+        )
         fn = _get_tool_fn(mcp, "get_selected_element")
         result = fn()
         data = json.loads(result)
@@ -206,8 +240,11 @@ class TestGetPageInfo:
 
     def test_returns_info(self):
         store, mcp = _setup()
-        store.set_page_info(PageInfo(url="http://localhost:3000", title="My App",
-                                     viewport=Viewport(width=1920, height=1080), timestamp=1.0))
+        store.set_page_info(
+            PageInfo(
+                url="http://localhost:3000", title="My App", viewport=Viewport(width=1920, height=1080), timestamp=1.0
+            )
+        )
         fn = _get_tool_fn(mcp, "get_page_info")
         result = fn()
         data = json.loads(result)

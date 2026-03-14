@@ -6,7 +6,6 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-
 ARGUS_DIR = Path.home() / ".argus"
 CONFIG_FILE = ARGUS_DIR / "config.json"
 
@@ -62,4 +61,3 @@ class Settings(BaseSettings):
 
 
 settings = Settings()
-
