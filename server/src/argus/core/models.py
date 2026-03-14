@@ -60,7 +60,9 @@ class Screenshot(BaseModel):
     url: str
     timestamp: float
     viewport: Viewport
-    trigger: str = "hotkey"  # hotkey, element, auto
+    trigger: str = "hotkey"  # hotkey, element, page_load, tab_switch, periodic, user_click
+    title: str = ""
+    description: str = ""
 
 
 class ElementCapture(BaseModel):

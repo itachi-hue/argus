@@ -122,7 +122,8 @@ class InMemoryStore(ContextStore):
     def get_screenshot_list(self) -> list[dict]:
         with self._lock:
             return [
-                {"index": i, "url": s.url, "timestamp": s.timestamp, "trigger": s.trigger,
+                {"index": i, "description": s.description, "url": s.url, "title": s.title,
+                 "timestamp": s.timestamp, "trigger": s.trigger,
                  "viewport": {"width": s.viewport.width, "height": s.viewport.height}}
                 for i, s in enumerate(reversed(self._screenshots))
             ]

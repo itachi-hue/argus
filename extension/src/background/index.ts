@@ -70,6 +70,25 @@ async function getActiveTab(): Promise<chrome.tabs.Tab | null> {
   return tab || null;
 }
 
+// --- Description builder ---
+const TRIGGER_LABELS: Record<string, string> = {
+  hotkey: "Manual capture",
+  page_load: "Page loaded",
+  tab_switch: "Switched to tab",
+  periodic: "Periodic capture",
+  user_click: "After click",
+  element: "Element captured",
+};
+
+function buildDescription(trigger: string, title: string, url: string): string {
+  const label = TRIGGER_LABELS[trigger] || trigger;
+  const shortUrl = url.replace(/^https?:\/\//, "").replace(/\/$/, "");
+  if (title) {
+    return `${label}: ${title} (${shortUrl})`;
+  }
+  return `${label}: ${shortUrl}`;
+}
+
 // --- Handle event batches from content script ---
 chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendResponse) => {
   if (msg.type === "events-batch" && msg.payload) {
@@ -183,6 +202,8 @@ chrome.commands.onCommand.addListener(async (command) => {
       timestamp: Date.now(),
       viewport: { width: tab.width || 0, height: tab.height || 0 },
       trigger: "hotkey",
+      title: tab.title || "",
+      description: buildDescription("hotkey", tab.title || "", tab.url),
     };
   }
 
@@ -235,6 +256,8 @@ async function autoCapture(trigger: string) {
     timestamp: Date.now(),
     viewport: { width: tab.width || 0, height: tab.height || 0 },
     trigger,
+    title: tab.title || "",
+    description: buildDescription(trigger, tab.title || "", tab.url),
   });
 }
 
@@ -320,6 +343,8 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
           timestamp: Date.now(),
           viewport: { width: tab.width || 0, height: tab.height || 0 },
           trigger: "element",
+          title: tab.title || "",
+          description: buildDescription("element", tab.title || "", tab.url || ""),
         });
       }
 
