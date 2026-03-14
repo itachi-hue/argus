@@ -18,15 +18,14 @@
 
 ---
 
-Argus connects your AI agent to your browser through [MCP](https://modelcontextprotocol.io/). It captures runtime context — console errors, network failures, screenshots — and lets the agent click, type, navigate, and inspect the page directly.
+AI agents can read and write code — but they can't see or touch the browser. Argus fixes that.
+
+**See** — console errors, network failures, screenshots, component state, performance metrics.
+**Do** — click buttons, fill forms, navigate pages, run JS, test responsiveness.
+
+One Chrome extension. One [MCP](https://modelcontextprotocol.io/) server. 31 tools. Any AI agent.
 
 Works with **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** · **Cline** · and any MCP-compatible client.
-
-## How It Works
-
-```
-Browser → Chrome Extension (captures) → MCP Server (stores) → AI Agent (reads + acts)
-```
 
 ## MCP Tools
 
