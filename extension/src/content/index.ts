@@ -137,6 +137,23 @@ function captureElement(x: number, y: number) {
   };
 }
 
+// --- Debounced click capture ---
+// Notifies the service worker after a user click so it can auto-capture a screenshot.
+// Debounced to avoid spamming — only fires once every 5 seconds max.
+let clickDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+const CLICK_DEBOUNCE_MS = 5_000;
+
+document.addEventListener("click", () => {
+  if (clickDebounceTimer) return; // already scheduled
+  clickDebounceTimer = setTimeout(() => {
+    clickDebounceTimer = null;
+  }, CLICK_DEBOUNCE_MS);
+
+  chrome.runtime.sendMessage({ type: "user-interaction" } as ArgusInternalMessage).catch(() => {
+    /* SW might be inactive */
+  });
+}, { capture: true });
+
 // Track last right-click position
 let lastRightClickX = 0;
 let lastRightClickY = 0;

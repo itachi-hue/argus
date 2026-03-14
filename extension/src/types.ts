@@ -71,6 +71,7 @@ export interface ArgusInternalMessage {
     | "events-batch"
     | "element-captured"
     | "capture-element-request"
+    | "user-interaction"
     | "get-status"
     | "update-settings"
     | "pair-request"

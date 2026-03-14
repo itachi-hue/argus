@@ -100,6 +100,13 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendRes
     return true;
   }
 
+  if (msg.type === "user-interaction") {
+    // Content script detected a user click — capture after a short delay for UI to settle
+    setTimeout(() => autoCapture("user_click"), 2000);
+    sendResponse({ ok: true });
+    return true;
+  }
+
   if (msg.type === "pair-request") {
     fetch(`${settings.server_url}/api/pair`, { method: "POST" })
       .then((r) => r.json())
@@ -225,6 +232,17 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
 chrome.tabs.onActivated.addListener(() => {
   // Small delay to let the tab render
   setTimeout(() => autoCapture("tab_switch"), 500);
+});
+
+// --- Periodic capture (every 30s) — catches HMR, scroll, state changes ---
+const PERIODIC_ALARM_NAME = "argus-periodic-capture";
+
+chrome.alarms.create(PERIODIC_ALARM_NAME, { periodInMinutes: 0.5 }); // 30 seconds
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+  if (alarm.name === PERIODIC_ALARM_NAME) {
+    autoCapture("periodic");
+  }
 });
 
 // --- Context menu ---
