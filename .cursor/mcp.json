@@ -1,9 +1,0 @@
-{
-  "mcpServers": {
-    "argus": {
-      "command": "python",
-      "args": ["-m", "argus"],
-      "cwd": "C:\\Users\\Vivek\\projects\\code_dir\\project_argus\\server"
-    }
-  }
-}
