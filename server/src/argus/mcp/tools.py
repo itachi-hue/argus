@@ -5,12 +5,15 @@ import json
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ImageContent, TextContent
 
+from argus.core.baselines import BaselineStore, compare_screenshots
 from argus.core.commands import CommandQueue
 from argus.core.stack_parser import parse_error
 from argus.store.base import ContextStore
 
 
-def create_mcp_server(store: ContextStore, command_queue: CommandQueue) -> FastMCP:
+def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline_store: BaselineStore | None = None) -> FastMCP:
+    if baseline_store is None:
+        baseline_store = BaselineStore()
     mcp = FastMCP(
         "argus",
         instructions=(
@@ -366,6 +369,89 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue) -> FastM
         cmd_id = command_queue.enqueue("get_cookies", {})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
+
+    # ═══════════════════════════════════════════════════════════════
+    # VISUAL REGRESSION TOOLS — before/after screenshot comparison
+    # ═══════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    def snapshot_baseline(name: str) -> str:
+        """Save the latest screenshot as a named baseline for visual regression.
+
+        Take a baseline snapshot before making CSS/layout changes, then use
+        compare_with_baseline() after to see exactly what changed.
+
+        Args:
+            name: Name for this baseline (e.g. 'homepage', 'checkout-form', 'before-fix').
+        """
+        screenshot = store.get_screenshot(index=0)
+        if not screenshot:
+            return "No screenshots available. Capture one first."
+        baseline_store.save(name, screenshot.data)
+        return json.dumps({
+            "saved": name,
+            "url": screenshot.url,
+            "timestamp": screenshot.timestamp,
+            "all_baselines": baseline_store.list_names(),
+        })
+
+    @mcp.tool()
+    def compare_with_baseline(name: str) -> list[TextContent | ImageContent]:
+        """Compare the current screenshot against a saved baseline.
+
+        Returns pixel diff metrics and a visual diff image highlighting
+        all changed areas in red. Use after making CSS/layout changes.
+
+        Args:
+            name: Name of the baseline to compare against.
+        """
+        baseline_data = baseline_store.get(name)
+        if not baseline_data:
+            names = baseline_store.list_names()
+            msg = f"No baseline named '{name}'."
+            if names:
+                msg += f" Available: {', '.join(names)}"
+            return [TextContent(type="text", text=msg)]
+
+        current = store.get_screenshot(index=0)
+        if not current:
+            return [TextContent(type="text", text="No current screenshot. Capture one first.")]
+
+        result = compare_screenshots(baseline_data, current.data)
+
+        summary = json.dumps({
+            "baseline": name,
+            "match": result["match"],
+            "change_percent": result["change_percent"],
+            "changed_pixels": result["changed_pixels"],
+            "total_pixels": result["total_pixels"],
+            "verdict": "No visual changes" if result["match"] else f"{result['change_percent']}% of pixels changed",
+        }, indent=2)
+
+        # Return summary + diff image
+        return [
+            TextContent(type="text", text=summary),
+            ImageContent(type="image", data=result["diff_image"], mimeType="image/jpeg"),
+        ]
+
+    @mcp.tool()
+    def list_baselines() -> str:
+        """List all saved visual regression baselines."""
+        names = baseline_store.list_names()
+        if not names:
+            return "No baselines saved. Use snapshot_baseline() to save one."
+        return json.dumps({"baselines": names, "count": len(names)})
+
+    @mcp.tool()
+    def delete_baseline(name: str) -> str:
+        """Delete a saved visual regression baseline.
+
+        Args:
+            name: Name of the baseline to delete.
+        """
+        if baseline_store.delete(name):
+            return f"Deleted baseline '{name}'."
+        return f"No baseline named '{name}'."
 
     # ═══════════════════════════════════════════════════════════════
     # FRAMEWORK INSPECTION TOOLS — React, Vue, Svelte, Angular
