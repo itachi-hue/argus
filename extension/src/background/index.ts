@@ -18,6 +18,7 @@ let settings: ArgusSettings = {
   auth_token: "",
   capture_console_logs: true,
   capture_network: true,
+  auto_capture: true,
   max_body_length: 2000,
   batch_interval_ms: 3000,
   batch_size: 50,
@@ -173,6 +174,57 @@ chrome.commands.onCommand.addListener(async (command) => {
     chrome.action.setBadgeBackgroundColor({ color: "#22c55e" });
     setTimeout(() => chrome.action.setBadgeText({ text: "", tabId: tab.id }), 2000);
   }
+});
+
+// --- Auto-capture ---
+let lastAutoCaptureTime = 0;
+const AUTO_CAPTURE_THROTTLE_MS = 10_000; // max once every 10 seconds
+
+async function autoCapture(trigger: string) {
+  if (!settings.auto_capture || !settings.auth_token) return;
+
+  const now = Date.now();
+  if (now - lastAutoCaptureTime < AUTO_CAPTURE_THROTTLE_MS) return;
+  lastAutoCaptureTime = now;
+
+  const tab = await getActiveTab();
+  if (!tab?.id || !tab.url) return;
+
+  // Skip chrome:// and extension pages
+  if (tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) return;
+
+  const screenshotData = await captureScreenshot(trigger);
+  if (!screenshotData) return;
+
+  // Send page info
+  await sendToServer("/ingest/page-info", {
+    url: tab.url,
+    title: tab.title || "",
+    viewport: { width: tab.width || 0, height: tab.height || 0 },
+    timestamp: Date.now(),
+  });
+
+  // Send screenshot
+  await sendToServer("/ingest/screenshot", {
+    data: screenshotData,
+    url: tab.url,
+    timestamp: Date.now(),
+    viewport: { width: tab.width || 0, height: tab.height || 0 },
+    trigger,
+  });
+}
+
+// Auto-capture on page load complete
+chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
+  if (changeInfo.status === "complete" && tab.active) {
+    autoCapture("page_load");
+  }
+});
+
+// Auto-capture on tab switch
+chrome.tabs.onActivated.addListener(() => {
+  // Small delay to let the tab render
+  setTimeout(() => autoCapture("tab_switch"), 500);
 });
 
 // --- Context menu ---

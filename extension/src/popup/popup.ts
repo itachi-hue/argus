@@ -20,6 +20,7 @@ const authTokenInput = document.getElementById("auth-token") as HTMLInputElement
 const saveBtn = document.getElementById("save-btn") as HTMLButtonElement;
 
 // Connected controls
+const autoCaptureCheck = document.getElementById("auto-capture") as HTMLInputElement;
 const captureLogsCheck = document.getElementById("capture-logs") as HTMLInputElement;
 const captureNetworkCheck = document.getElementById("capture-network") as HTMLInputElement;
 const disconnectBtn = document.getElementById("disconnect-btn") as HTMLButtonElement;
@@ -50,6 +51,7 @@ async function loadSettings() {
   const s = stored.argus_settings || {};
   serverUrlInput.value = s.server_url || "http://127.0.0.1:42777";
   authTokenInput.value = s.auth_token || "";
+  autoCaptureCheck.checked = s.auto_capture !== false;
   captureLogsCheck.checked = s.capture_console_logs !== false;
   captureNetworkCheck.checked = s.capture_network !== false;
 }
@@ -194,6 +196,13 @@ saveBtn.addEventListener("click", async () => {
 });
 
 // --- Toggle saves ---
+autoCaptureCheck.addEventListener("change", async () => {
+  await chrome.runtime.sendMessage({
+    type: "update-settings",
+    payload: { auto_capture: autoCaptureCheck.checked },
+  } as ArgusInternalMessage);
+});
+
 captureLogsCheck.addEventListener("change", async () => {
   await chrome.runtime.sendMessage({
     type: "update-settings",

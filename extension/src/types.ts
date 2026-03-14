@@ -83,6 +83,7 @@ export interface ArgusSettings {
   auth_token: string;
   capture_console_logs: boolean;
   capture_network: boolean;
+  auto_capture: boolean;
   max_body_length: number;
   batch_interval_ms: number;
   batch_size: number;
@@ -95,6 +96,7 @@ export const DEFAULT_SETTINGS: ArgusSettings = {
   auth_token: "",
   capture_console_logs: true,
   capture_network: true,
+  auto_capture: true,
   max_body_length: 2000,
   batch_interval_ms: 3000,
   batch_size: 50,

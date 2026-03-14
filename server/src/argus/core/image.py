@@ -46,3 +46,4 @@ def optimize_screenshot(base64_data: str, max_width: int = MAX_WIDTH, quality: i
         logger.warning("Failed to optimize screenshot, using original", exc_info=True)
         return base64_data
 
+
