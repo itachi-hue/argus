@@ -128,7 +128,10 @@ npm run build
 
 ### 4. Pair Extension to Server
 
-Click the Argus extension icon → **Connect to Server** → enter the 4-digit code shown in your terminal. Done.
+1. Open **http://127.0.0.1:42777/api/pair** in your browser → click **Copy Token**
+2. Click the Argus extension icon → **Paste Token & Connect**
+
+That's it.
 
 ### 5. Use It
 
