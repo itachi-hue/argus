@@ -93,6 +93,7 @@ const TRIGGER_LABELS: Record<string, string> = {
   periodic: "Periodic capture",
   user_click: "After click",
   element: "Element captured",
+  manual: "Agent-triggered capture",
 };
 
 function buildDescription(trigger: string, title: string, url: string): string {
@@ -473,8 +474,16 @@ async function executeCommand(cmd: BrowserCommand): Promise<{ success: boolean; 
         return await execInPage(tab.id, pageWaitFor, [cmd.params.selector, cmd.params.timeout_ms]);
       case "fill_form":
         return await execInPage(tab.id, pageFillForm, [cmd.params.fields]);
-      case "capture_viewport":
-        return await execCaptureViewport(tab, cmd.params.width, cmd.params.height);
+      case "select_option":
+        return await execInPage(tab.id, pageSelectOption, [cmd.params.selector, cmd.params.value]);
+      case "press_key":
+        return await execInPage(tab.id, pagePressKey, [
+          cmd.params.key,
+          cmd.params.selector || null,
+          cmd.params.modifiers || null,
+        ]);
+      case "take_screenshot":
+        return await execTakeScreenshot(tab);
       case "get_perf":
         return await execInPageMain(tab.id, pageGetPerf, []);
       case "get_storage":
@@ -696,6 +705,79 @@ function pageFillForm(fields: Record<string, string>) {
     filled++;
   }
   return { success: errors === 0, result: { filled, errors, details: results } };
+}
+
+function pageSelectOption(selector: string, value: string) {
+  const el = document.querySelector(selector) as HTMLSelectElement | null;
+  if (!el) return { success: false, error: `Element not found: ${selector}` };
+  if (el.tagName !== "SELECT") return { success: false, error: `Element is <${el.tagName.toLowerCase()}>, not <select>` };
+
+  // Try matching by value first, then by visible text
+  let found = false;
+  for (const opt of Array.from(el.options)) {
+    if (opt.value === value) {
+      el.value = opt.value;
+      found = true;
+      break;
+    }
+  }
+  if (!found) {
+    for (const opt of Array.from(el.options)) {
+      if (opt.textContent?.trim() === value) {
+        el.value = opt.value;
+        found = true;
+        break;
+      }
+    }
+  }
+  if (!found) {
+    const available = Array.from(el.options).map((o) => `${o.value} ("${o.textContent?.trim()}")`);
+    return { success: false, error: `No option matching "${value}". Available: ${available.join(", ")}` };
+  }
+
+  el.dispatchEvent(new Event("change", { bubbles: true }));
+  el.dispatchEvent(new Event("input", { bubbles: true }));
+  return {
+    success: true,
+    result: { selected: el.value, text: el.options[el.selectedIndex]?.textContent?.trim(), selector },
+  };
+}
+
+function pagePressKey(key: string, selector: string | null, modifiers: string | null) {
+  let target: Element | null = null;
+  if (selector) {
+    target = document.querySelector(selector);
+    if (!target) return { success: false, error: `Element not found: ${selector}` };
+    (target as HTMLElement).focus();
+  } else {
+    target = document.activeElement || document.body;
+  }
+
+  const mods = modifiers ? modifiers.split(",").map((m) => m.trim().toLowerCase()) : [];
+  const eventInit: KeyboardEventInit = {
+    key,
+    code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
+    bubbles: true,
+    cancelable: true,
+    ctrlKey: mods.includes("ctrl"),
+    shiftKey: mods.includes("shift"),
+    altKey: mods.includes("alt"),
+    metaKey: mods.includes("meta"),
+  };
+
+  target.dispatchEvent(new KeyboardEvent("keydown", eventInit));
+  target.dispatchEvent(new KeyboardEvent("keypress", eventInit));
+  target.dispatchEvent(new KeyboardEvent("keyup", eventInit));
+
+  return {
+    success: true,
+    result: {
+      key,
+      modifiers: mods.length > 0 ? mods : undefined,
+      target: selector || "activeElement",
+      tag: (target as HTMLElement).tagName?.toLowerCase(),
+    },
+  };
 }
 
 function pageGetPerf() {
@@ -1304,43 +1386,31 @@ async function execGetCookies(url: string): Promise<any> {
   }
 }
 
-async function execCaptureViewport(
-  tab: chrome.tabs.Tab,
-  width: number,
-  height: number
-): Promise<any> {
-  const windowId = tab.windowId;
-  if (!windowId) return { success: false, error: "No window ID" };
-
+async function execTakeScreenshot(tab: chrome.tabs.Tab): Promise<any> {
   try {
-    // Get current window size
-    const currentWindow = await chrome.windows.get(windowId);
-    const origWidth = currentWindow.width || 1280;
-    const origHeight = currentWindow.height || 800;
-
-    // Resize to target dimensions
-    await chrome.windows.update(windowId, { width, height });
-
-    // Wait for resize to settle
-    await new Promise((r) => setTimeout(r, 1000));
-
-    // Capture screenshot
-    const screenshotData = await captureScreenshot("viewport_test");
-
-    // Restore original size
-    await chrome.windows.update(windowId, { width: origWidth, height: origHeight });
-
+    const screenshotData = await captureScreenshot("manual");
     if (!screenshotData) {
-      return { success: false, error: "Failed to capture screenshot after resize" };
+      return { success: false, error: "Failed to capture screenshot" };
     }
+
+    // Also store it in the server
+    await sendToServer("/ingest/screenshot", {
+      data: screenshotData,
+      url: tab.url || "",
+      timestamp: Date.now() / 1000,
+      viewport: { width: tab.width || 0, height: tab.height || 0 },
+      trigger: "manual",
+      title: tab.title || "",
+      description: buildDescription("manual", tab.title || "", tab.url || ""),
+    });
 
     return {
       success: true,
       result: {
         screenshot: screenshotData,
         url: tab.url || "",
-        viewport: { width, height },
-        original_viewport: { width: origWidth, height: origHeight },
+        timestamp: Date.now() / 1000,
+        viewport: { width: tab.width || 0, height: tab.height || 0 },
       },
     };
   } catch (e: any) {

@@ -71,3 +71,4 @@ All checks run automatically in CI on push and pull requests.
 - Write docstrings for public functions
 - Use type annotations
 
+

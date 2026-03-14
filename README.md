@@ -195,12 +195,14 @@ Open your web app in Chrome and talk to your agent:
 | `get_error_source_context` | Parse stack trace to file:line:column with workspace path mapping |
 | `clear_context` | Clear stored context |
 
-### Browser Actions (8 tools)
+### Browser Actions (10 tools)
 
 | Tool | What it does |
 |------|-------------|
 | `click_element` | Click any element by CSS selector |
 | `type_text` | Type into input fields (React/Vue compatible) |
+| `press_key` | Send keyboard events (Enter, Escape, Tab, arrows, with modifiers) |
+| `select_option` | Select an option in a `<select>` dropdown by value or text |
 | `scroll_to` | Scroll to element, position, or direction |
 | `navigate_to` | Navigate to any URL |
 | `get_text` | Read text content + attributes of any element |
@@ -224,13 +226,12 @@ Open your web app in Chrome and talk to your agent:
 | `list_baselines` | List all saved baselines |
 | `delete_baseline` | Delete a saved baseline |
 
-### Advanced (7 tools)
+### Advanced (6 tools)
 
 | Tool | What it does |
 |------|-------------|
 | `fill_form` | Fill multiple form fields in one call |
-| `capture_at_viewport` | Resize browser + screenshot (responsive testing) |
-| `responsive_audit` | Capture at mobile, tablet, desktop breakpoints in one call |
+| `take_screenshot` | Force-capture a fresh screenshot of the current tab on demand |
 | `get_performance_metrics` | Web Vitals, memory, resource counts |
 | `get_storage` | Read localStorage / sessionStorage |
 | `get_cookies` | List cookies for current domain |
@@ -238,12 +239,11 @@ Open your web app in Chrome and talk to your agent:
 
 ## Features
 
-- **31 MCP tools** — observe, act, inspect, compare, audit
+- **32 MCP tools** — observe, act, inspect, compare, audit
 - **Component inspector** — read React/Vue/Svelte/Angular component props, state, hooks, and context
 - **Visual regression** — snapshot baselines and pixel-diff after changes
 - **Error source mapping** — parse stack traces to file:line:column, maps URLs to workspace paths
-- **Responsive audit** — capture mobile, tablet, and desktop screenshots in one call
-- **Agent browser actions** — click, type, scroll, navigate, fill forms, run JS in the page
+- **Agent browser actions** — click, type, scroll, navigate, press keys, select options, fill forms, run JS
 - **Framework detection** — auto-detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery
 - **Performance metrics** — Web Vitals (LCP, FCP, TTFB), memory, resource breakdown
 - **Accessibility auditing** — missing alt text, unlabeled inputs, heading skips, low contrast

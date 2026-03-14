@@ -261,7 +261,9 @@ Agent calls click_element("#submit-btn")
 | `highlight` | Isolated | Add colored outline to element |
 | `wait_for` | Isolated | MutationObserver-based wait for element appearance |
 | `fill_form` | Isolated | Fill multiple form fields at once |
-| `capture_viewport` | — | Resize window, capture screenshot, restore |
+| `select_option` | Isolated | Select option in `<select>` by value or text |
+| `press_key` | Isolated | Dispatch keyboard events (Enter, Escape, Tab, arrows) |
+| `take_screenshot` | — | Force-capture a fresh screenshot on demand |
 | `get_perf` | MAIN | Read `performance` API + `performance.memory` |
 | `get_storage` | MAIN | Read localStorage / sessionStorage |
 | `get_cookies` | — | `chrome.cookies.getAll` |
@@ -314,18 +316,6 @@ Agent calls compare_with_baseline("before-fix")
 ```
 
 All computation server-side via Pillow. No extension involvement.
-
-### 5.9 Responsive Audit
-
-```
-Agent calls responsive_audit()
-→ MCP tool enqueues 3 capture_viewport commands sequentially:
-    Mobile:  375×812  (iPhone 14)
-    Tablet:  768×1024 (iPad)
-    Desktop: 1440×900
-→ Extension resizes window, captures screenshot, restores for each
-→ Returns: 3 screenshots + metadata summary
-```
 
 ---
 

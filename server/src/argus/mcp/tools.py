@@ -187,7 +187,7 @@ def create_mcp_server(
         return json.dumps(result, indent=2)
 
     # ═══════════════════════════════════════════════════════════════
-    # BROWSER ACTION TOOLS (8) — interact with the page
+    # BROWSER ACTION TOOLS — interact with the page
     # ═══════════════════════════════════════════════════════════════
 
     @mcp.tool()
@@ -293,7 +293,7 @@ def create_mcp_server(
         return json.dumps(result)
 
     # ═══════════════════════════════════════════════════════════════
-    # ADVANCED TOOLS (6) — forms, viewport, perf, storage, cookies, a11y
+    # ADVANCED TOOLS — forms, keys, dropdowns, perf, storage, cookies, a11y
     # ═══════════════════════════════════════════════════════════════
 
     @mcp.tool()
@@ -314,27 +314,61 @@ def create_mcp_server(
         return json.dumps(result)
 
     @mcp.tool()
-    async def capture_at_viewport(width: int, height: int) -> list[TextContent | ImageContent]:
-        """Resize browser to specific dimensions, capture a screenshot, then restore.
-        Useful for testing responsive layouts.
+    async def select_option(selector: str, value: str) -> str:
+        """Select an option in a <select> dropdown.
 
         Args:
-            width: Viewport width in pixels (e.g. 375 for iPhone, 768 for tablet, 1920 for desktop).
-            height: Viewport height in pixels (e.g. 812 for iPhone, 1024 for tablet, 1080 for desktop).
+            selector: CSS selector for the <select> element (e.g. '#country', 'select[name="size"]').
+            value: The value to select. Matches against option's value attribute first,
+                   then visible text content.
         """
-        cmd_id = command_queue.enqueue("capture_viewport", {"width": width, "height": height})
-        result = await command_queue.wait_for_result(cmd_id, timeout=20.0)
+        cmd_id = command_queue.enqueue("select_option", {"selector": selector, "value": value})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def press_key(key: str, selector: str | None = None, modifiers: str | None = None) -> str:
+        """Send a keyboard event to the page or a specific element.
+
+        Args:
+            key: Key to press — 'Enter', 'Escape', 'Tab', 'ArrowDown', 'Backspace',
+                 'Space', or a single character like 'a'.
+            selector: Optional CSS selector to focus before pressing. If omitted,
+                      sends to the currently focused element.
+            modifiers: Optional comma-separated modifiers — 'ctrl', 'shift', 'alt', 'meta'.
+                       Example: 'ctrl,shift' for Ctrl+Shift+Key.
+        """
+        params: dict = {"key": key}
+        if selector:
+            params["selector"] = selector
+        if modifiers:
+            params["modifiers"] = modifiers
+        cmd_id = command_queue.enqueue("press_key", params)
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def take_screenshot() -> list[TextContent | ImageContent]:
+        """Force-capture a fresh screenshot of the current browser tab right now.
+
+        Unlike get_screenshot (which returns the last auto-captured image),
+        this triggers a new capture immediately. Use when you need to see the
+        very latest state after making changes.
+        """
+        cmd_id = command_queue.enqueue("take_screenshot", {})
+        result = await command_queue.wait_for_result(cmd_id, timeout=10.0)
         if not result.get("success"):
             return [TextContent(type="text", text=json.dumps(result))]
 
         screenshot_data = result.get("result", {}).get("screenshot")
         if not screenshot_data:
-            return [TextContent(type="text", text="Viewport captured but no screenshot data returned.")]
+            return [TextContent(type="text", text="Screenshot captured but no data returned.")]
 
         metadata = json.dumps(
             {
-                "viewport": {"width": width, "height": height},
                 "url": result.get("result", {}).get("url", ""),
+                "timestamp": result.get("result", {}).get("timestamp"),
+                "viewport": result.get("result", {}).get("viewport"),
             }
         )
         return [
@@ -494,91 +528,6 @@ def create_mcp_server(
         cmd_id = command_queue.enqueue("inspect_component", {"selector": selector})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
-
-    @mcp.tool()
-    async def responsive_audit(url: str | None = None) -> list[TextContent | ImageContent]:
-        """Capture screenshots at mobile, tablet, and desktop breakpoints.
-
-        Automatically resizes the browser to 3 viewports, captures a screenshot
-        at each, and returns all 3 with metadata. Great for checking responsive layouts.
-
-        Standard breakpoints:
-          - Mobile:  375 x 812  (iPhone 14)
-          - Tablet:  768 x 1024 (iPad)
-          - Desktop: 1440 x 900
-
-        Args:
-            url: Optional URL to navigate to first. If omitted, captures the current page.
-        """
-        results: list[TextContent | ImageContent] = []
-        breakpoints = [
-            {"name": "mobile", "width": 375, "height": 812, "device": "iPhone 14"},
-            {"name": "tablet", "width": 768, "height": 1024, "device": "iPad"},
-            {"name": "desktop", "width": 1440, "height": 900, "device": "Desktop"},
-        ]
-
-        # Navigate first if URL provided
-        if url:
-            nav_id = command_queue.enqueue("navigate", {"url": url})
-            await command_queue.wait_for_result(nav_id, timeout=10.0)
-            # Wait for page to settle
-            import asyncio
-
-            await asyncio.sleep(2.0)
-
-        captures = []
-        for bp in breakpoints:
-            cmd_id = command_queue.enqueue("capture_viewport", {"width": bp["width"], "height": bp["height"]})
-            result = await command_queue.wait_for_result(cmd_id, timeout=20.0)
-            captures.append((bp, result))
-
-        # Build response
-        summary_items = []
-        for bp, result in captures:
-            if result.get("success"):
-                screenshot_data = result.get("result", {}).get("screenshot")
-                bp_url = result.get("result", {}).get("url", "")
-                summary_items.append(
-                    {
-                        "breakpoint": bp["name"],
-                        "device": bp["device"],
-                        "viewport": f"{bp['width']}x{bp['height']}",
-                        "url": bp_url,
-                        "captured": True,
-                    }
-                )
-                if screenshot_data:
-                    results.append(
-                        TextContent(type="text", text=f"--- {bp['device']} ({bp['width']}x{bp['height']}) ---")
-                    )
-                    results.append(ImageContent(type="image", data=screenshot_data, mimeType="image/jpeg"))
-            else:
-                summary_items.append(
-                    {
-                        "breakpoint": bp["name"],
-                        "device": bp["device"],
-                        "viewport": f"{bp['width']}x{bp['height']}",
-                        "captured": False,
-                        "error": result.get("error", "Unknown error"),
-                    }
-                )
-
-        # Prepend summary
-        results.insert(
-            0,
-            TextContent(
-                type="text",
-                text=json.dumps(
-                    {
-                        "audit": "responsive",
-                        "breakpoints": summary_items,
-                    },
-                    indent=2,
-                ),
-            ),
-        )
-
-        return results
 
     @mcp.tool()
     async def get_accessibility_issues(selector: str | None = None) -> str:
