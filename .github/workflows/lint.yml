@@ -6,46 +6,47 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
-  ruff:
-    name: Ruff (Python)
+  python-lint:
+    name: Python (ruff)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: server
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: "3.13"
+          python-version: "3.12"
 
-      - name: Install ruff
-        run: pip install "ruff>=0.8.0,<1.0"
+      - name: Install dependencies
+        working-directory: server
+        run: pip install -e ".[dev]"
 
-      - name: Ruff check
+      - name: Check linting
+        working-directory: server
         run: ruff check src/ tests/
 
-      - name: Ruff format check
+      - name: Check formatting
+        working-directory: server
         run: ruff format --check src/ tests/
 
-  typecheck:
-    name: TypeScript
+  typescript-lint:
+    name: TypeScript (tsc)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: extension
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: extension/package-lock.json
+          node-version: "20"
 
-      - run: npm ci
-      - run: npx tsc --noEmit
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Type check
+        working-directory: extension
+        run: npx tsc --noEmit

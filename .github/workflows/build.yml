@@ -6,50 +6,50 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
-  extension:
-    name: Chrome Extension
+  build-server:
+    name: Server (pip install)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: extension
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          node-version: 22
-          cache: npm
-          cache-dependency-path: extension/package-lock.json
+          python-version: "3.12"
 
-      - run: npm ci
-      - run: npm run build
-
-      - name: Verify build output
-        run: |
-          test -f dist/background/index.js
-          test -f dist/content/index.js
-          test -f dist/injected/index.js
-          test -f dist/popup/popup.js
-
-  server:
-    name: Python Server
-    runs-on: ubuntu-latest
-    defaults:
-      run:
+      - name: Install
         working-directory: server
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: Install package
         run: pip install -e .
 
       - name: Verify import
-        run: python -c "from argus.main import main; print('OK')"
+        run: python -c "import argus; print(f'argus {argus.__version__}')"
+
+  build-extension:
+    name: Extension (esbuild)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Build
+        working-directory: extension
+        run: npm run build
+
+      - name: Verify output
+        run: |
+          test -f extension/dist/background/index.js
+          test -f extension/dist/content/index.js
+          test -f extension/dist/injected/index.js
+          test -f extension/dist/popup/popup.js
+          echo "All build outputs present"

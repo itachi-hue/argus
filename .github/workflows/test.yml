@@ -6,28 +6,46 @@ on:
   pull_request:
     branches: [main]
 
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
-
 jobs:
-  pytest:
-    name: Python Tests
+  server-tests:
+    name: Server Tests (Python)
     runs-on: ubuntu-latest
     strategy:
       matrix:
         python-version: ["3.11", "3.12", "3.13"]
-    defaults:
-      run:
-        working-directory: server
+
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-python@v5
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
       - name: Install dependencies
+        working-directory: server
         run: pip install -e ".[dev]"
 
       - name: Run tests
-        run: python -m pytest tests/ -v --tb=short
+        working-directory: server
+        run: pytest tests/ -v --tb=short
+
+  extension-tests:
+    name: Extension Tests (TypeScript)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        working-directory: extension
+        run: npm ci
+
+      - name: Run tests
+        working-directory: extension
+        run: npm test
