@@ -5,7 +5,7 @@
 <h1 align="center">Argus</h1>
 
 <p align="center">
-  <strong>Give your AI agent eyes and hands in the browser.</strong>
+  <strong>Eyes and hands for AI agents.</strong>
 </p>
 
 <p align="center">
@@ -18,12 +18,9 @@
 
 ---
 
-AI agents can read and write code — but they can't see or touch the browser. Argus fixes that.
+AI agents can read and write code — but they can't see or interact with what's running. Argus fixes that, starting with the browser.
 
-**See** — console errors, network failures, screenshots, component state, performance metrics.
-**Do** — click buttons, fill forms, navigate pages, run JS, test responsiveness.
-
-One Chrome extension. One [MCP](https://modelcontextprotocol.io/) server. 31 tools. Any AI agent.
+Your agent can see console errors, screenshots, network failures, component state — and act on them: click buttons, fill forms, navigate pages, run JS, test responsiveness. All through [MCP](https://modelcontextprotocol.io/).
 
 Works with **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** · **Cline** · and any MCP-compatible client.
 
