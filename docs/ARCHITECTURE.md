@@ -74,10 +74,12 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 │  │  HTTP Server │         │  MCP Server (stdio)    │        │
 │  │  (FastAPI)   │         │                        │        │
 │  │              │         │  Tools:                │        │
-│  │  /ingest/*   │────────►│  23 MCP Tools:         │        │
-│  │  /health     │  write  │  - 9 observation       │        │
+│  │  /ingest/*   │────────►│  31 MCP Tools:         │        │
+│  │  /health     │  write  │  - 10 observation      │        │
 │  │  /commands/* │         │  - 8 browser actions   │        │
-│  └──────────────┘         │  - 6 advanced          │        │
+│  └──────────────┘         │  - 2 framework inspect │        │
+│                           │  - 4 visual regression │        │
+│                           │  - 7 advanced          │        │
 │         │                 │                        │        │
 │         ▼                 │  Command Queue:        │        │
 │  ┌──────────────┐         │  agent→server→ext→page │        │
@@ -264,6 +266,66 @@ Agent calls click_element("#submit-btn")
 | `get_storage` | MAIN | Read localStorage / sessionStorage |
 | `get_cookies` | — | `chrome.cookies.getAll` |
 | `a11y_audit` | Isolated | Scan for missing alt text, labels, contrast, heading skips |
+| `detect_framework` | MAIN | Detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery |
+| `inspect_component` | MAIN | Read component props, state, hooks, context from DOM element |
+
+### 5.6 Component Inspection
+
+```
+Agent calls inspect_component(".user-card")
+→ MCP tool enqueues "inspect_component" command
+→ Extension executes pageInspectComponent in MAIN world
+→ Function finds React fiber (__reactFiber$...) on DOM element
+→ Walks fiber tree to find nearest component
+→ Extracts: name, props, hooks/state, parent components
+→ Returns structured component data to agent
+```
+
+Supports: React 16+ (fibers + hooks), Vue 2/3, Svelte, Angular (ng.getComponent).
+
+### 5.7 Error Source Mapping (Server-Side)
+
+```
+Agent calls get_error_source_context(0)
+→ Server retrieves latest error from store
+→ Stack trace parser extracts file:line:column from each frame
+→ URL mapper converts localhost URLs to workspace-relative paths:
+    http://localhost:3000/src/App.tsx → src/App.tsx
+    webpack:///./src/Button.tsx     → src/Button.tsx
+→ Identifies primary app-code frame (skips node_modules, CDN)
+→ Returns structured [{file, line, column, function, is_app_code}]
+```
+
+No extension involvement — purely server-side parsing.
+
+### 5.8 Visual Regression (Server-Side)
+
+```
+Agent calls snapshot_baseline("before-fix")
+→ Server saves latest screenshot as named baseline
+
+Agent makes code changes, page reloads
+
+Agent calls compare_with_baseline("before-fix")
+→ Server captures latest screenshot
+→ Pillow computes pixel-level diff (threshold: channel > 20)
+→ Generates diff image with red overlay on changed areas
+→ Returns: % change, pixel count, match verdict, diff image
+```
+
+All computation server-side via Pillow. No extension involvement.
+
+### 5.9 Responsive Audit
+
+```
+Agent calls responsive_audit()
+→ MCP tool enqueues 3 capture_viewport commands sequentially:
+    Mobile:  375×812  (iPhone 14)
+    Tablet:  768×1024 (iPad)
+    Desktop: 1440×900
+→ Extension resizes window, captures screenshot, restores for each
+→ Returns: 3 screenshots + metadata summary
+```
 
 ---
 

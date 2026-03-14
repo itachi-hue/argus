@@ -144,9 +144,9 @@ Open your web app in Chrome and talk to your agent:
 - *"Run an accessibility audit on the page"*
 - *"Check the performance metrics — is LCP too slow?"*
 
-## MCP Tools (23)
+## MCP Tools (31)
 
-### Observation (9 tools)
+### Observation (10 tools)
 
 | Tool | What it does |
 |------|-------------|
@@ -158,6 +158,7 @@ Open your web app in Chrome and talk to your agent:
 | `list_screenshots` | Timeline of all captured screenshots with metadata |
 | `get_selected_element` | Right-click captured element (selector, styles, HTML) |
 | `get_page_info` | Current page URL, title, viewport |
+| `get_error_source_context` | Parse stack trace to file:line:column with workspace path mapping |
 | `clear_context` | Clear stored context |
 
 ### Browser Actions (8 tools)
@@ -173,12 +174,29 @@ Open your web app in Chrome and talk to your agent:
 | `highlight_element` | Highlight an element with a colored outline for debugging |
 | `wait_for_element` | Wait for an element to appear (for async UI) |
 
-### Advanced (6 tools)
+### Framework Inspection (2 tools)
+
+| Tool | What it does |
+|------|-------------|
+| `detect_framework` | Detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery |
+| `inspect_component` | Read component name, props, state, hooks, context for any element |
+
+### Visual Regression (4 tools)
+
+| Tool | What it does |
+|------|-------------|
+| `snapshot_baseline` | Save current screenshot as a named baseline |
+| `compare_with_baseline` | Pixel-diff current vs baseline, returns diff image |
+| `list_baselines` | List all saved baselines |
+| `delete_baseline` | Delete a saved baseline |
+
+### Advanced (7 tools)
 
 | Tool | What it does |
 |------|-------------|
 | `fill_form` | Fill multiple form fields in one call |
 | `capture_at_viewport` | Resize browser + screenshot (responsive testing) |
+| `responsive_audit` | Capture at mobile, tablet, desktop breakpoints in one call |
 | `get_performance_metrics` | Web Vitals, memory, resource counts |
 | `get_storage` | Read localStorage / sessionStorage |
 | `get_cookies` | List cookies for current domain |
@@ -186,13 +204,17 @@ Open your web app in Chrome and talk to your agent:
 
 ## Features
 
-- **23 MCP tools** — 9 observation + 8 browser actions + 6 advanced
+- **31 MCP tools** — observe, act, inspect, compare, audit
+- **Component inspector** — read React/Vue/Svelte/Angular component props, state, hooks, and context
+- **Visual regression** — snapshot baselines and pixel-diff after changes
+- **Error source mapping** — parse stack traces to file:line:column, maps URLs to workspace paths
+- **Responsive audit** — capture mobile, tablet, and desktop screenshots in one call
 - **Agent browser actions** — click, type, scroll, navigate, fill forms, run JS in the page
-- **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
+- **Framework detection** — auto-detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery
 - **Performance metrics** — Web Vitals (LCP, FCP, TTFB), memory, resource breakdown
 - **Accessibility auditing** — missing alt text, unlabeled inputs, heading skips, low contrast
 - **Storage & cookies** — read localStorage, sessionStorage, and cookies
-- **Responsive testing** — resize viewport and capture screenshots at any resolution
+- **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
 - **Smart screenshots** — JPEG compressed, resized, sent as native image content blocks (low token cost)
 - **Noise filtering** — blocks analytics, HMR, browser extension traffic automatically
 - **Error deduplication** — same error in a loop won't flood the buffer
@@ -233,10 +255,10 @@ argus/
 │   │   ├── config.py           # Settings (pydantic-settings)
 │   │   ├── mcp/tools.py        # MCP tool definitions
 │   │   ├── api/                # FastAPI HTTP server
-│   │   ├── core/               # Models, filters, dedup, image opt, command queue
+│   │   ├── core/               # Models, filters, dedup, image opt, commands, baselines, stack parser
 │   │   ├── store/              # Storage abstraction (in-memory)
 │   │   └── security/           # Sensitive data sanitizer
-│   ├── tests/                  # 119 tests
+│   ├── tests/                  # 140+ tests
 │   └── pyproject.toml
 ├── extension/                  # Chrome extension (Manifest V3)
 │   ├── src/
