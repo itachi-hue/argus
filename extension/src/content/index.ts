@@ -131,7 +131,7 @@ function captureElement(x: number, y: number) {
     text: (el.textContent || "").slice(0, 500),
     bounding_rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
     parent_html: el.parentElement?.outerHTML?.slice(0, 1000) || "",
-    timestamp: Date.now(),
+    timestamp: Date.now() / 1000,
     url: window.location.href,
     screenshot_index: null,
   };

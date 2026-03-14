@@ -214,12 +214,12 @@ chrome.commands.onCommand.addListener(async (command) => {
   const screenshotData = await captureScreenshot("hotkey");
 
   const snapshot: any = {
-    timestamp: Date.now(),
+    timestamp: Date.now() / 1000,
     page_info: {
       url: tab.url,
       title: tab.title || "",
       viewport: { width: tab.width || 0, height: tab.height || 0 },
-      timestamp: Date.now(),
+      timestamp: Date.now() / 1000,
     },
   };
 
@@ -227,7 +227,7 @@ chrome.commands.onCommand.addListener(async (command) => {
     snapshot.screenshot = {
       data: screenshotData,
       url: tab.url,
-      timestamp: Date.now(),
+      timestamp: Date.now() / 1000,
       viewport: { width: tab.width || 0, height: tab.height || 0 },
       trigger: "hotkey",
       title: tab.title || "",
@@ -270,13 +270,13 @@ async function autoCapture(trigger: string) {
     url: tab.url,
     title: tab.title || "",
     viewport: { width: tab.width || 0, height: tab.height || 0 },
-    timestamp: Date.now(),
+    timestamp: Date.now() / 1000,
   });
 
   await sendToServer("/ingest/screenshot", {
     data: screenshotData,
     url: tab.url,
-    timestamp: Date.now(),
+    timestamp: Date.now() / 1000,
     viewport: { width: tab.width || 0, height: tab.height || 0 },
     trigger,
     title: tab.title || "",
@@ -365,7 +365,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         await sendToServer("/ingest/screenshot", {
           data: screenshotData,
           url: tab.url || "",
-          timestamp: Date.now(),
+          timestamp: Date.now() / 1000,
           viewport: { width: tab.width || 0, height: tab.height || 0 },
           trigger: "element",
           title: tab.title || "",
@@ -377,7 +377,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
         url: tab.url || "",
         title: tab.title || "",
         viewport: { width: tab.width || 0, height: tab.height || 0 },
-        timestamp: Date.now(),
+        timestamp: Date.now() / 1000,
       });
 
       chrome.action.setBadgeText({ text: "✓", tabId: tab.id });
