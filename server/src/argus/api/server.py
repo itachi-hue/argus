@@ -8,6 +8,7 @@ from argus.api.middleware import AuthMiddleware, PayloadSizeMiddleware, RateLimi
 from argus.api.pairing import create_pairing_router
 from argus.api.routes import create_router
 from argus.config import Settings
+from argus.core.commands import CommandQueue
 from argus.core.dedup import ErrorDeduplicator
 from argus.core.filters import NoiseFilter
 from argus.security.sanitizer import Sanitizer
@@ -18,6 +19,7 @@ def create_app(
     store: ContextStore,
     config: Settings,
     mcp: FastMCP | None = None,
+    command_queue: CommandQueue | None = None,
 ) -> FastAPI:
     app = FastAPI(title="Argus", version="0.1.0", docs_url=None, redoc_url=None)
 
@@ -25,7 +27,7 @@ def create_app(
     app.add_middleware(
         CORSMiddleware,
         allow_origins=["*"],
-        allow_methods=["GET", "POST", "DELETE"],
+        allow_methods=["GET", "POST", "DELETE", "PATCH"],
         allow_headers=["*"],
     )
 
@@ -39,8 +41,12 @@ def create_app(
     deduplicator = ErrorDeduplicator()
     sanitizer = Sanitizer(max_body_length=config.max_body_length)
 
+    # Command queue for agent-initiated browser actions
+    if command_queue is None:
+        command_queue = CommandQueue()
+
     # Routes
-    router = create_router(store, noise_filter, deduplicator, sanitizer)
+    router = create_router(store, noise_filter, deduplicator, sanitizer, command_queue)
     app.include_router(router)
 
     # Pairing routes (no auth required)

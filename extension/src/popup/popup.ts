@@ -26,6 +26,7 @@ const captureNetworkCheck = document.getElementById("capture-network") as HTMLIn
 const captureIntervalInput = document.getElementById("capture-interval") as HTMLInputElement;
 const maxScreenshotsInput = document.getElementById("max-screenshots") as HTMLInputElement;
 const captureSettingsDiv = document.getElementById("capture-settings") as HTMLDivElement;
+const agentActionsCheck = document.getElementById("agent-actions") as HTMLInputElement;
 const disconnectBtn = document.getElementById("disconnect-btn") as HTMLButtonElement;
 const saveToast = document.getElementById("save-toast") as HTMLDivElement;
 
@@ -78,6 +79,7 @@ async function loadSettings() {
   captureIntervalInput.value = String(s.capture_interval_s || 30);
   maxScreenshotsInput.value = String(s.max_screenshots || 15);
   captureSettingsDiv.style.display = autoCaptureCheck.checked ? "" : "none";
+  agentActionsCheck.checked = s.agent_actions !== false;
 }
 
 // --- Check connection ---
@@ -247,6 +249,10 @@ captureLogsCheck.addEventListener("change", () => {
 
 captureNetworkCheck.addEventListener("change", () => {
   updateSetting({ capture_network: captureNetworkCheck.checked });
+});
+
+agentActionsCheck.addEventListener("change", () => {
+  updateSetting({ agent_actions: agentActionsCheck.checked });
 });
 
 // --- Disconnect ---

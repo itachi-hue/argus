@@ -2,7 +2,7 @@
 
 ## 1. Overview
 
-Argus is a runtime context bridge for AI coding agents. It captures what's happening in the browser — console errors, network requests, screenshots, UI element details — and exposes that data to AI agents via the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/).
+Argus is a runtime context bridge **and browser automation layer** for AI coding agents. It captures what's happening in the browser — console errors, network requests, screenshots, UI element details — and lets the agent interact with the page (click, type, navigate, run JS). All exposed via [MCP](https://modelcontextprotocol.io/) tools.
 
 **Two components:**
 
@@ -74,15 +74,14 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 │  │  HTTP Server │         │  MCP Server (stdio)    │        │
 │  │  (FastAPI)   │         │                        │        │
 │  │              │         │  Tools:                │        │
-│  │  /ingest/*   │────────►│  - get_console_errors  │        │
-│  │  /health     │  write  │  - get_console_logs    │        │
-│  │              │         │  - get_network_*       │        │
-│  └──────────────┘         │  - get_screenshot      │        │
-│         │                 │  - list_screenshots    │        │
-│         ▼                 │  - get_selected_element │        │
-│  ┌──────────────┐         │  - get_page_info       │        │
-│  │  Processing  │         │  - clear_context       │        │
-│  │  Pipeline    │         └───────────┬────────────┘        │
+│  │  /ingest/*   │────────►│  23 MCP Tools:         │        │
+│  │  /health     │  write  │  - 9 observation       │        │
+│  │  /commands/* │         │  - 8 browser actions   │        │
+│  └──────────────┘         │  - 6 advanced          │        │
+│         │                 │                        │        │
+│         ▼                 │  Command Queue:        │        │
+│  ┌──────────────┐         │  agent→server→ext→page │        │
+│  │  Processing  │         └───────────┬────────────┘        │
 │  │              │                     │                     │
 │  │  - Validate  │                     │ read                │
 │  │  - Filter    │                     │                     │
@@ -105,13 +104,16 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 │                  AI AGENT                                    │
 │  (Cursor / Claude Code / Claude Desktop / Windsurf / etc.)  │
 │                                                             │
-│  Agent calls MCP tools:                                     │
+│  Observe:                                                    │
 │  → get_console_errors()   — see the TypeError               │
 │  → get_screenshot()       — see the broken UI               │
 │  → get_network_failures() — see the 401                     │
 │  → list_screenshots()     — browse the timeline             │
-│                                                             │
-│  Agent reads code, makes fix, applies to editor.             │
+│  Act:                                                        │
+│  → click_element("#btn")  — click a button                  │
+│  → type_text("#input", "hello") — type in a field           │
+│  → run_javascript("document.title") — read page state       │
+│  → get_accessibility_issues() — audit the page              │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -127,7 +129,7 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 |--------|---------|-------------|
 | `injected.ts` | Page (same as web app) | Monkey-patches `fetch`, `XMLHttpRequest`, `console.*`. Listens for `window.onerror`, `unhandledrejection`. Posts events via `window.postMessage`. |
 | `content/index.ts` | Isolated content script | Receives events from injected script. Extracts element details for right-click captures. Sends click events for auto-capture. Forwards to Service Worker. |
-| `background/index.ts` | Service Worker (MV3) | Buffers events, handles hotkey, captures screenshots, manages context menu, periodic alarm, auto-capture logic. Sends to server via HTTP. |
+| `background/index.ts` | Service Worker (MV3) | Buffers events, handles hotkey, captures screenshots, manages context menu, periodic alarm, auto-capture logic, command polling + execution. Sends to server via HTTP. |
 | `popup/popup.ts` | Extension popup | Settings UI — server pairing, capture toggles, interval/count config, connection status. |
 
 **Capture triggers:**
@@ -230,6 +232,39 @@ User right-clicks element → "Capture for AI Agent"
 → agent calls get_selected_element() → sees element details + screenshot
 ```
 
+### 5.5 Agent Browser Action (Command Queue)
+
+```
+Agent calls click_element("#submit-btn")
+→ MCP tool enqueues command {id, action: "click", params: {selector}} in CommandQueue
+→ MCP tool awaits result (polls every 250ms, 15s timeout)
+→ Extension polls GET /api/commands/pending every 800ms
+→ Extension picks up command, executes via chrome.scripting.executeScript
+→ Page function clicks element, returns {success: true, result: {...}}
+→ Extension POSTs result to /api/commands/{id}/result
+→ CommandQueue stores result
+→ MCP tool picks up result, returns to agent
+```
+
+**Supported actions:**
+
+| Action | World | Description |
+|--------|-------|-------------|
+| `click` | Isolated | Click element by CSS selector |
+| `type` | Isolated | Type text into input (React/Vue compatible via native setter) |
+| `scroll` | Isolated | Scroll to element, position, or direction |
+| `navigate` | — | `chrome.tabs.update` — changes tab URL |
+| `get_text` | Isolated | Read text content + attributes |
+| `run_js` | MAIN | Execute JS in page context (access `window`, framework internals) |
+| `highlight` | Isolated | Add colored outline to element |
+| `wait_for` | Isolated | MutationObserver-based wait for element appearance |
+| `fill_form` | Isolated | Fill multiple form fields at once |
+| `capture_viewport` | — | Resize window, capture screenshot, restore |
+| `get_perf` | MAIN | Read `performance` API + `performance.memory` |
+| `get_storage` | MAIN | Read localStorage / sessionStorage |
+| `get_cookies` | — | `chrome.cookies.getAll` |
+| `a11y_audit` | Isolated | Scan for missing alt text, labels, contrast, heading skips |
+
 ---
 
 ## 6. Storage
@@ -293,6 +328,7 @@ Request/response bodies truncated to 2,000 characters.
 | `storage` | Persist settings and event buffer |
 | `contextMenus` | Right-click "Capture for AI Agent" |
 | `alarms` | Periodic auto-capture |
+| `cookies` | Read cookies for `get_cookies` tool |
 | `host_permissions: <all_urls>` | Auto-capture on page load / tab switch |
 
 ---

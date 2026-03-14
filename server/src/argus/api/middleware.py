@@ -39,8 +39,11 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         self.max_requests = max_requests
         self._timestamps: deque[float] = deque()
 
+    # High-frequency endpoints exempt from rate limiting
+    RATE_EXEMPT: ClassVar[set[str]] = {"/api/health", "/api/commands/pending"}
+
     async def dispatch(self, request: Request, call_next):
-        if request.url.path == "/api/health":
+        if request.url.path in self.RATE_EXEMPT:
             return await call_next(request)
 
         now = time.time()

@@ -4,6 +4,7 @@ import json
 import time
 
 from argus.config import Settings
+from argus.core.commands import CommandQueue
 from argus.core.models import (
     BoundingRect,
     ConsoleEvent,
@@ -25,7 +26,8 @@ def _now():
 def _setup():
     config = Settings(auth_token="t")
     store = InMemoryStore(config)
-    mcp = create_mcp_server(store)
+    command_queue = CommandQueue()
+    mcp = create_mcp_server(store, command_queue)
     return store, mcp
 
 

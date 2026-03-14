@@ -15,6 +15,7 @@ import uvicorn
 
 from argus.api.server import create_app
 from argus.config import settings
+from argus.core.commands import CommandQueue
 from argus.mcp.tools import create_mcp_server
 from argus.store.memory import InMemoryStore
 
@@ -54,13 +55,14 @@ def main() -> None:
         sys.exit(1)
 
     store = InMemoryStore(settings)
-    mcp = create_mcp_server(store)
+    command_queue = CommandQueue()
+    mcp = create_mcp_server(store, command_queue)
 
     use_stdio = transport in ("stdio", "all")
     use_sse = transport in ("sse", "all")
 
     # Build FastAPI app, mounting MCP SSE if needed
-    app = create_app(store, settings, mcp=mcp if use_sse else None)
+    app = create_app(store, settings, mcp=mcp if use_sse else None, command_queue=command_queue)
 
     # Copy token to clipboard
     if _copy_to_clipboard(settings.auth_token):

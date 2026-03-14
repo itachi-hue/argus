@@ -79,6 +79,13 @@ export interface ArgusInternalMessage {
   payload?: any;
 }
 
+/** Agent browser command (server → extension) */
+export interface BrowserCommand {
+  id: string;
+  action: string;
+  params: Record<string, any>;
+}
+
 export interface ArgusSettings {
   server_url: string;
   auth_token: string;
@@ -92,6 +99,7 @@ export interface ArgusSettings {
   batch_size: number;
   blocked_domains: string[];
   allowed_domains: string[];
+  agent_actions: boolean; // enable agent browser actions
 }
 
 export const DEFAULT_SETTINGS: ArgusSettings = {
@@ -107,5 +115,5 @@ export const DEFAULT_SETTINGS: ArgusSettings = {
   batch_size: 50,
   blocked_domains: [],
   allowed_domains: [],
+  agent_actions: true,
 };
-

@@ -12,7 +12,7 @@
   <a href="https://github.com/itachi-hue/argus/actions/workflows/test.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/test.yml/badge.svg" alt="Tests" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/lint.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/lint.yml/badge.svg" alt="Lint" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/build.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-proprietary-red.svg" alt="Proprietary" /></a>
   <img src="https://img.shields.io/badge/python-3.11+-blue.svg" alt="Python 3.11+" />
   <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible" />
 </p>
@@ -21,9 +21,9 @@
 
 AI agents can read and write your code — but they're **blind** to what happens when you run it.
 
-Argus captures browser runtime context — **console errors, network failures, screenshots, UI element details** — and exposes it all as [MCP](https://modelcontextprotocol.io/) tools that any AI agent can call.
+Argus gives your AI agent **eyes and hands** in the browser. It captures runtime context — **console errors, network failures, screenshots, UI element details** — and lets the agent **click, type, navigate, and inspect** the page directly, all through [MCP](https://modelcontextprotocol.io/) tools.
 
-No more copy-pasting errors. No more describing what you see. Your agent calls `get_console_errors()` and sees the `TypeError`. Calls `get_screenshot()` and sees the broken layout. Calls `get_network_failures()` and sees the `401`. Then fixes the code.
+No more copy-pasting errors. No more describing what you see. Your agent calls `get_console_errors()` and sees the `TypeError`. Calls `get_screenshot()` and sees the broken layout. Calls `click_element()` and tests the fix. Calls `get_accessibility_issues()` and catches missing alt text.
 
 ## How It Works
 
@@ -35,7 +35,7 @@ Browser → Chrome Extension (captures) → MCP Server (stores) → AI Agent (qu
 2. **Auto-capture** takes screenshots on page load, tab switch, clicks, and periodically
 3. **Hotkey** `Ctrl+Shift+L` captures a screenshot + all current context on demand
 4. **Right-click** any element → "Capture for AI Agent" to grab element details + styles
-5. **Your agent** calls MCP tools like `get_console_errors()`, `get_screenshot()`, `get_selected_element()` and fixes the code
+5. **Your agent** calls MCP tools to observe (`get_console_errors()`, `get_screenshot()`) and act (`click_element()`, `type_text()`, `navigate_to()`)
 
 ## Works With
 
@@ -139,9 +139,14 @@ Open your web app in Chrome and talk to your agent:
 - *"Check the browser for errors and fix them"*
 - *"Look at the screenshot and fix the layout"*
 - *"The API call is failing, check network failures"*
-- *"What does the browser console show?"*
+- *"Click the login button and see what happens"*
+- *"Fill in the signup form and test the validation"*
+- *"Run an accessibility audit on the page"*
+- *"Check the performance metrics — is LCP too slow?"*
 
-## MCP Tools
+## MCP Tools (23)
+
+### Observation (9 tools)
 
 | Tool | What it does |
 |------|-------------|
@@ -155,15 +160,43 @@ Open your web app in Chrome and talk to your agent:
 | `get_page_info` | Current page URL, title, viewport |
 | `clear_context` | Clear stored context |
 
+### Browser Actions (8 tools)
+
+| Tool | What it does |
+|------|-------------|
+| `click_element` | Click any element by CSS selector |
+| `type_text` | Type into input fields (React/Vue compatible) |
+| `scroll_to` | Scroll to element, position, or direction |
+| `navigate_to` | Navigate to any URL |
+| `get_text` | Read text content + attributes of any element |
+| `run_javascript` | Execute JS in page context (access `window`, React internals, etc.) |
+| `highlight_element` | Highlight an element with a colored outline for debugging |
+| `wait_for_element` | Wait for an element to appear (for async UI) |
+
+### Advanced (6 tools)
+
+| Tool | What it does |
+|------|-------------|
+| `fill_form` | Fill multiple form fields in one call |
+| `capture_at_viewport` | Resize browser + screenshot (responsive testing) |
+| `get_performance_metrics` | Web Vitals, memory, resource counts |
+| `get_storage` | Read localStorage / sessionStorage |
+| `get_cookies` | List cookies for current domain |
+| `get_accessibility_issues` | Audit for missing alt text, labels, contrast, headings |
+
 ## Features
 
+- **23 MCP tools** — 9 observation + 8 browser actions + 6 advanced
+- **Agent browser actions** — click, type, scroll, navigate, fill forms, run JS in the page
 - **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
-- **Configurable** — capture interval, max screenshots, toggle per-feature from the popup
+- **Performance metrics** — Web Vitals (LCP, FCP, TTFB), memory, resource breakdown
+- **Accessibility auditing** — missing alt text, unlabeled inputs, heading skips, low contrast
+- **Storage & cookies** — read localStorage, sessionStorage, and cookies
+- **Responsive testing** — resize viewport and capture screenshots at any resolution
 - **Smart screenshots** — JPEG compressed, resized, sent as native image content blocks (low token cost)
 - **Noise filtering** — blocks analytics, HMR, browser extension traffic automatically
 - **Error deduplication** — same error in a loop won't flood the buffer
 - **Sensitive data stripping** — `Authorization`, `Cookie` headers redacted automatically
-- **Descriptive timeline** — each screenshot has title + description so the AI picks the right one
 - **Local-first** — all data stays on your machine, server binds to `127.0.0.1` only
 
 ## Configuration
@@ -188,6 +221,7 @@ Open your web app in Chrome and talk to your agent:
 | Max screenshots | 15 | Rolling buffer size (3–50) |
 | Console & Errors | On | Capture console logs and JS errors |
 | Network Traffic | On | Capture HTTP requests |
+| Agent Actions | On | Let AI click, type, navigate, and inspect the page |
 
 ## Project Structure
 
@@ -199,22 +233,22 @@ argus/
 │   │   ├── config.py           # Settings (pydantic-settings)
 │   │   ├── mcp/tools.py        # MCP tool definitions
 │   │   ├── api/                # FastAPI HTTP server
-│   │   ├── core/               # Models, filters, dedup, image optimization
+│   │   ├── core/               # Models, filters, dedup, image opt, command queue
 │   │   ├── store/              # Storage abstraction (in-memory)
 │   │   └── security/           # Sensitive data sanitizer
-│   ├── tests/                  # 111 tests
+│   ├── tests/                  # 119 tests
 │   └── pyproject.toml
 ├── extension/                  # Chrome extension (Manifest V3)
 │   ├── src/
 │   │   ├── background/         # Service worker
 │   │   ├── content/            # Content script + click capture
-│   │   ├── injected/           # Page-context monitors
+│   │   ├── injected/           # Page-context monitors (console, network)
 │   │   └── popup/              # Settings UI
 │   └── manifest.json
 ├── docs/
 │   └── ARCHITECTURE.md         # Technical architecture
 ├── .github/workflows/          # CI: lint, test, build
-└── LICENSE                     # MIT
+└── LICENSE                     # Proprietary
 ```
 
 ## Security
@@ -245,4 +279,4 @@ npm run watch                 # dev mode with auto-rebuild
 
 ## License
 
-[MIT](LICENSE) — Vivek Rao
+Proprietary — © 2026 Vivek Rao. All rights reserved.

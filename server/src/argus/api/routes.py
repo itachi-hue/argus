@@ -3,6 +3,7 @@
 from fastapi import APIRouter
 from pydantic import BaseModel
 
+from argus.core.commands import CommandQueue
 from argus.core.dedup import ErrorDeduplicator
 from argus.core.filters import NoiseFilter
 from argus.core.image import optimize_screenshot
@@ -26,17 +27,26 @@ class UpdateSettingsRequest(BaseModel):
         return max(1, min(self.max_screenshots, 50))
 
 
+class CommandResultRequest(BaseModel):
+    success: bool
+    result: dict | None = None
+    error: str | None = None
+
+
 def create_router(
     store: ContextStore,
     noise_filter: NoiseFilter,
     deduplicator: ErrorDeduplicator,
     sanitizer: Sanitizer,
+    command_queue: CommandQueue,
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
     @router.get("/health")
     async def health():
         return {"status": "ok", "service": "argus"}
+
+    # --- Data ingestion ---
 
     @router.post("/ingest/events")
     async def ingest_events(req: IngestEventsRequest):
@@ -97,6 +107,23 @@ def create_router(
             store.set_selected_element(req.selected_element)
 
         return {"accepted": True}
+
+    # --- Command queue (agent → browser) ---
+
+    @router.get("/commands/pending")
+    async def get_pending_commands():
+        return command_queue.get_pending()
+
+    @router.post("/commands/{command_id}/result")
+    async def submit_command_result(command_id: str, req: CommandResultRequest):
+        command_queue.set_result(command_id, {
+            "success": req.success,
+            "result": req.result,
+            "error": req.error,
+        })
+        return {"accepted": True}
+
+    # --- Settings ---
 
     @router.patch("/settings")
     async def update_settings(req: UpdateSettingsRequest):

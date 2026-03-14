@@ -1,22 +1,32 @@
-"""MCP tool definitions — the agent-facing interface."""
+"""MCP tool definitions — the agent-facing interface.
+
+23 tools total:
+  9 existing   — console, network, screenshots, element, page info, clear
+  14 new       — browser actions, perf, storage, cookies, a11y
+"""
 
 import json
 
 from mcp.server.fastmcp import FastMCP
 from mcp.types import ImageContent, TextContent
 
+from argus.core.commands import CommandQueue
 from argus.store.base import ContextStore
 
 
-def create_mcp_server(store: ContextStore) -> FastMCP:
+def create_mcp_server(store: ContextStore, command_queue: CommandQueue) -> FastMCP:
     mcp = FastMCP(
         "argus",
         instructions=(
-            "Argus provides runtime browser context — console errors, network requests, "
-            "screenshots, and UI element details. Use these tools to understand what is "
-            "happening in the user's running application."
+            "Argus gives you eyes AND hands in the browser. "
+            "Use observation tools (console, network, screenshots) to understand what's happening, "
+            "and action tools (click, type, navigate, run JS) to interact with the page directly."
         ),
     )
+
+    # ═══════════════════════════════════════════════════════════════
+    # OBSERVATION TOOLS (9) — read browser state
+    # ═══════════════════════════════════════════════════════════════
 
     @mcp.tool()
     def get_console_errors(limit: int = 20, since_minutes: float = 5) -> str:
@@ -88,7 +98,6 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
                 )
             ]
 
-        # Return metadata as text + image as native image content block
         metadata = json.dumps(
             {
                 "url": screenshot.url,
@@ -144,5 +153,205 @@ def create_mcp_server(store: ContextStore) -> FastMCP:
         """
         store.clear(event_type)
         return f"Cleared {'all context' if not event_type else event_type}."
+
+    # ═══════════════════════════════════════════════════════════════
+    # BROWSER ACTION TOOLS (8) — interact with the page
+    # ═══════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    async def click_element(selector: str) -> str:
+        """Click an element on the page.
+
+        Args:
+            selector: CSS selector for the element to click (e.g. 'button.submit', '#login-btn').
+        """
+        cmd_id = command_queue.enqueue("click", {"selector": selector})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def type_text(selector: str, text: str, clear_first: bool = True) -> str:
+        """Type text into an input field.
+
+        Args:
+            selector: CSS selector for the input element.
+            text: Text to type.
+            clear_first: Whether to clear existing text before typing (default True).
+        """
+        cmd_id = command_queue.enqueue("type", {"selector": selector, "text": text, "clear_first": clear_first})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def scroll_to(selector: str | None = None, x: int = 0, y: int = 0, direction: str | None = None) -> str:
+        """Scroll the page to an element or position.
+
+        Args:
+            selector: CSS selector to scroll into view. If provided, x/y are ignored.
+            x: Horizontal scroll position in pixels (if no selector).
+            y: Vertical scroll position in pixels (if no selector).
+            direction: Quick scroll — 'top', 'bottom', 'up', 'down'. Overrides x/y.
+        """
+        cmd_id = command_queue.enqueue("scroll", {"selector": selector, "x": x, "y": y, "direction": direction})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def navigate_to(url: str) -> str:
+        """Navigate the browser to a URL.
+
+        Args:
+            url: The URL to navigate to (e.g. 'https://example.com' or '/dashboard').
+        """
+        cmd_id = command_queue.enqueue("navigate", {"url": url})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def get_text(selector: str) -> str:
+        """Get the text content of an element.
+
+        Args:
+            selector: CSS selector for the element (e.g. 'h1', '.error-message', '#price').
+        """
+        cmd_id = command_queue.enqueue("get_text", {"selector": selector})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def run_javascript(code: str) -> str:
+        """Execute JavaScript in the page context and return the result.
+
+        The code runs in the page's main world — you have access to window, document,
+        and all page globals (React, Vue, Angular internals, etc.).
+
+        Args:
+            code: JavaScript code to execute. The last expression is returned.
+                  Example: 'document.title' or 'window.__NEXT_DATA__.props'
+        """
+        cmd_id = command_queue.enqueue("run_js", {"code": code})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def highlight_element(selector: str, color: str = "#ff00ff", duration_ms: int = 3000) -> str:
+        """Highlight an element with a colored outline for visual debugging.
+
+        Args:
+            selector: CSS selector for the element to highlight.
+            color: Outline color (default '#ff00ff' — magenta).
+            duration_ms: How long the highlight stays visible in milliseconds (default 3000).
+        """
+        cmd_id = command_queue.enqueue("highlight", {"selector": selector, "color": color, "duration_ms": duration_ms})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def wait_for_element(selector: str, timeout_ms: int = 5000) -> str:
+        """Wait for an element to appear in the DOM. Useful after navigation or
+        clicking something that triggers async UI updates.
+
+        Args:
+            selector: CSS selector to wait for.
+            timeout_ms: Maximum time to wait in milliseconds (default 5000).
+        """
+        cmd_id = command_queue.enqueue("wait_for", {"selector": selector, "timeout_ms": timeout_ms})
+        # Use longer server-side timeout to account for the browser-side wait
+        result = await command_queue.wait_for_result(cmd_id, timeout=max(15.0, timeout_ms / 1000 + 5))
+        return json.dumps(result)
+
+    # ═══════════════════════════════════════════════════════════════
+    # ADVANCED TOOLS (6) — forms, viewport, perf, storage, cookies, a11y
+    # ═══════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    async def fill_form(fields: str) -> str:
+        """Fill multiple form fields at once. More efficient than calling type_text
+        for each field individually.
+
+        Args:
+            fields: JSON string of selector-value pairs.
+                    Example: '{"#email": "test@example.com", "#password": "secret", "#name": "John"}'
+        """
+        try:
+            parsed = json.loads(fields)
+        except json.JSONDecodeError as e:
+            return json.dumps({"success": False, "error": f"Invalid JSON: {e}"})
+        cmd_id = command_queue.enqueue("fill_form", {"fields": parsed})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result)
+
+    @mcp.tool()
+    async def capture_at_viewport(width: int, height: int) -> list[TextContent | ImageContent]:
+        """Resize browser to specific dimensions, capture a screenshot, then restore.
+        Useful for testing responsive layouts.
+
+        Args:
+            width: Viewport width in pixels (e.g. 375 for iPhone, 768 for tablet, 1920 for desktop).
+            height: Viewport height in pixels (e.g. 812 for iPhone, 1024 for tablet, 1080 for desktop).
+        """
+        cmd_id = command_queue.enqueue("capture_viewport", {"width": width, "height": height})
+        result = await command_queue.wait_for_result(cmd_id, timeout=20.0)
+        if not result.get("success"):
+            return [TextContent(type="text", text=json.dumps(result))]
+
+        screenshot_data = result.get("result", {}).get("screenshot")
+        if not screenshot_data:
+            return [TextContent(type="text", text="Viewport captured but no screenshot data returned.")]
+
+        metadata = json.dumps({
+            "viewport": {"width": width, "height": height},
+            "url": result.get("result", {}).get("url", ""),
+        })
+        return [
+            TextContent(type="text", text=metadata),
+            ImageContent(type="image", data=screenshot_data, mimeType="image/jpeg"),
+        ]
+
+    @mcp.tool()
+    async def get_performance_metrics() -> str:
+        """Get Web Vitals and performance metrics from the current page.
+
+        Returns: Navigation timing (TTFB, DOM load, full load), paint timing (FCP, LCP),
+        layout shift (CLS), memory usage, and resource counts.
+        """
+        cmd_id = command_queue.enqueue("get_perf", {})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    async def get_storage(storage_type: str = "all") -> str:
+        """Get contents of localStorage and/or sessionStorage.
+
+        Args:
+            storage_type: 'local', 'session', or 'all' (default 'all').
+        """
+        cmd_id = command_queue.enqueue("get_storage", {"type": storage_type})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    async def get_cookies() -> str:
+        """Get all cookies for the current page domain.
+
+        Returns cookie names, values (first 50 chars), domains, paths, and flags.
+        """
+        cmd_id = command_queue.enqueue("get_cookies", {})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    async def get_accessibility_issues(selector: str | None = None) -> str:
+        """Run accessibility audit on the current page or a specific element.
+
+        Checks for: missing alt text, unlabeled form inputs, low contrast indicators,
+        missing ARIA roles, empty links/buttons, missing document language.
+
+        Args:
+            selector: CSS selector to scope the audit (default: entire page).
+        """
+        cmd_id = command_queue.enqueue("a11y_audit", {"selector": selector})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result, indent=2)
 
     return mcp
