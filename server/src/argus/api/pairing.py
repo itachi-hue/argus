@@ -19,7 +19,6 @@ from fastapi import APIRouter
 from fastapi.responses import HTMLResponse, JSONResponse
 from pydantic import BaseModel
 
-
 _PAIR_PAGE_HTML = """<!DOCTYPE html>
 <html lang="en">
 <head>
