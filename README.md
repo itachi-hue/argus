@@ -31,9 +31,11 @@ cd server
 pip install -e .
 ```
 
-### 2. Configure Your AI Agent
+### 2. Connect to Your AI Agent
 
-**Cursor** — Add to `.cursor/mcp.json`:
+#### Cursor
+
+Add to your project's `.cursor/mcp.json` (or global `~/.cursor/mcp.json`):
 
 ```json
 {
@@ -47,15 +49,72 @@ pip install -e .
 }
 ```
 
-**Claude Code:**
+On Windows, use the full path:
+
+```json
+{
+  "mcpServers": {
+    "argus": {
+      "command": "python",
+      "args": ["-m", "argus"],
+      "cwd": "C:\\Users\\YourName\\projects\\project_argus\\server"
+    }
+  }
+}
+```
+
+After saving, restart Cursor. You should see **argus** listed under **Settings → MCP** with a green dot.
+
+#### Claude Code
 
 ```bash
 claude mcp add argus -- python -m argus
 ```
 
-When the server starts, it prints an auth token to stderr. Copy it for the next step.
+That's it. Claude Code will start the server automatically when you open a session.
 
-### 3. Install the Chrome Extension
+#### Claude Desktop
+
+Add to `claude_desktop_config.json` (find it via **Settings → Developer → Edit Config**):
+
+```json
+{
+  "mcpServers": {
+    "argus": {
+      "command": "python",
+      "args": ["-m", "argus"],
+      "cwd": "/path/to/project_argus/server"
+    }
+  }
+}
+```
+
+Restart Claude Desktop after saving.
+
+#### Other MCP Clients (Windsurf, Cline, Continue, etc.)
+
+Any client that supports MCP stdio transport works. Point it at:
+
+```
+command: python -m argus
+working directory: /path/to/project_argus/server
+```
+
+### 3. Get the Auth Token
+
+When the MCP server starts, it writes the auth token to `~/.argus/config.json`. You can grab it with:
+
+```bash
+# Mac/Linux
+cat ~/.argus/config.json
+
+# Windows (PowerShell)
+Get-Content "$env:USERPROFILE\.argus\config.json"
+```
+
+The token is auto-generated on first run and persists across restarts.
+
+### 4. Install the Chrome Extension
 
 ```bash
 cd extension
@@ -63,17 +122,26 @@ npm install
 npm run build
 ```
 
+Then load it in Chrome:
+
 1. Open `chrome://extensions`
-2. Enable **Developer mode**
+2. Enable **Developer mode** (toggle in top-right)
 3. Click **Load unpacked** → select the `extension/` folder
-4. Click the Argus extension icon → paste the auth token → **Save & Connect**
+4. Click the Argus extension icon in the toolbar → paste the auth token from step 3 → **Save & Connect**
 
-### 4. Use It
+The popup should show a green **Connected** status.
 
-- Open your app in the browser
-- When something breaks, hit **Ctrl+Shift+L** (or **Cmd+Shift+L** on Mac)
-- Or right-click any element → **Capture for AI Agent**
-- Ask your agent: *"Check the browser for errors and fix them"*
+### 5. Use It
+
+1. Open your web app in Chrome
+2. **Automatic:** Errors and network requests are captured passively in the background
+3. **Hotkey:** Hit **Ctrl+Shift+L** (Mac: **Cmd+Shift+L**) to capture a screenshot + all current context
+4. **Right-click:** Right-click any element → **Capture for AI Agent** to capture element details + styles
+5. **Ask your agent:**
+   - *"Check the browser for errors and fix them"*
+   - *"Look at the screenshot and fix the layout"*
+   - *"The API call is failing, check network failures and fix the backend"*
+   - *"What does the browser console show?"*
 
 ## MCP Tools
 
@@ -141,6 +209,7 @@ project_argus/
 │   │   ├── core/            # Models, filters, dedup
 │   │   ├── store/           # Storage abstraction
 │   │   └── security/        # Sanitizer
+│   ├── tests/               # 103 tests
 │   └── pyproject.toml
 ├── extension/        # Chrome extension
 │   ├── src/
