@@ -145,13 +145,17 @@ Open your web app in Chrome and talk to your agent:
 - *"Run an accessibility audit on the page"*
 - *"Check the performance metrics — is LCP too slow?"*
 
-## 31 MCP Tools
+## MCP Tools
 
-**Observe** — console errors, network failures, screenshots, page info, element details, error source mapping
-**Act** — click, type, scroll, navigate, fill forms, run JS, highlight elements
-**Inspect** — React/Vue/Svelte/Angular component props, state, hooks, context
-**Test** — visual regression (pixel-diff), responsive audit (mobile/tablet/desktop), accessibility
-**Measure** — Web Vitals, localStorage, sessionStorage, cookies
+31 tools across 5 categories — everything an AI agent needs to debug, test, and interact with your app:
+
+| | |
+|---|---|
+| 👁️ **Observe** | Console errors · network failures · screenshots · page info · element details · error source mapping |
+| 🖱️ **Act** | Click · type · scroll · navigate · fill forms · run JS · highlight elements |
+| 🔍 **Inspect** | React / Vue / Svelte / Angular component props, state, hooks, context |
+| 🧪 **Test** | Visual regression (pixel-diff) · responsive audit (mobile / tablet / desktop) · accessibility |
+| 📊 **Measure** | Web Vitals · localStorage · sessionStorage · cookies |
 
 <details>
 <summary><strong>Observation</strong> (10 tools)</summary>
