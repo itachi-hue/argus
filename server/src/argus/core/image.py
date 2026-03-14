@@ -47,3 +47,4 @@ def optimize_screenshot(base64_data: str, max_width: int = MAX_WIDTH, quality: i
         return base64_data
 
 
+

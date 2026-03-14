@@ -27,17 +27,35 @@ const captureIntervalInput = document.getElementById("capture-interval") as HTML
 const maxScreenshotsInput = document.getElementById("max-screenshots") as HTMLInputElement;
 const captureSettingsDiv = document.getElementById("capture-settings") as HTMLDivElement;
 const disconnectBtn = document.getElementById("disconnect-btn") as HTMLButtonElement;
+const saveToast = document.getElementById("save-toast") as HTMLDivElement;
+
+// --- Save toast ---
+let saveToastTimer: ReturnType<typeof setTimeout> | null = null;
+
+function flashSaved() {
+  if (!saveToast) return;
+  saveToast.classList.remove("hidden");
+  // Force reflow for animation restart
+  void saveToast.offsetWidth;
+  saveToast.classList.add("show");
+
+  if (saveToastTimer) clearTimeout(saveToastTimer);
+  saveToastTimer = setTimeout(() => {
+    saveToast.classList.remove("show");
+    setTimeout(() => saveToast.classList.add("hidden"), 300);
+  }, 1500);
+}
 
 // --- State ---
 function setStatus(state: "connected" | "disconnected" | "pairing", text: string) {
-  statusDiv.className = `status ${state}`;
+  statusDiv.className = `status-badge ${state}`;
   statusText.textContent = text;
 }
 
 function showConnected() {
   connectSection.classList.add("hidden");
   connectedSection.classList.remove("hidden");
-  setStatus("connected", "Connected");
+  setStatus("connected", "Live");
 }
 
 function showDisconnected() {
@@ -45,7 +63,7 @@ function showDisconnected() {
   connectedSection.classList.add("hidden");
   codeSection.classList.add("hidden");
   pairError.classList.add("hidden");
-  setStatus("disconnected", "Disconnected");
+  setStatus("disconnected", "Offline");
 }
 
 // --- Load settings ---
@@ -78,8 +96,8 @@ async function checkConnection() {
 // --- One-click pairing flow ---
 pairBtn.addEventListener("click", async () => {
   pairBtn.disabled = true;
-  pairBtn.textContent = "Requesting code...";
-  setStatus("pairing", "Waiting for code...");
+  pairBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Requesting code...`;
+  setStatus("pairing", "Pairing…");
   pairError.classList.add("hidden");
 
   const response = await chrome.runtime.sendMessage({
@@ -90,20 +108,19 @@ pairBtn.addEventListener("click", async () => {
     codeSection.classList.remove("hidden");
     pairCodeInput.value = "";
     pairCodeInput.focus();
-    setStatus("pairing", "Enter code from terminal");
+    setStatus("pairing", "Enter code");
   } else {
     pairError.textContent = response?.error || "Cannot reach server. Is it running?";
     pairError.classList.remove("hidden");
-    setStatus("disconnected", "Server unreachable");
+    setStatus("disconnected", "Offline");
   }
 
   pairBtn.disabled = false;
-  pairBtn.textContent = "Connect to Server";
+  pairBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Connect to Server`;
 });
 
 // Handle code input — auto-submit when 4 digits entered
 pairCodeInput.addEventListener("input", () => {
-  // Only allow digits
   pairCodeInput.value = pairCodeInput.value.replace(/\D/g, "");
   if (pairCodeInput.value.length === 4) {
     submitCode();
@@ -126,7 +143,7 @@ async function submitCode() {
 
   pairError.classList.add("hidden");
   confirmBtn.disabled = true;
-  setStatus("pairing", "Verifying...");
+  setStatus("pairing", "Verifying…");
 
   const response = await chrome.runtime.sendMessage({
     type: "pair-confirm",
@@ -134,7 +151,6 @@ async function submitCode() {
   } as ArgusInternalMessage);
 
   if (response?.ok) {
-    // Save settings and show connected
     await chrome.runtime.sendMessage({
       type: "update-settings",
       payload: { auth_token: response.token },
@@ -145,7 +161,7 @@ async function submitCode() {
     pairError.classList.remove("hidden");
     pairCodeInput.value = "";
     pairCodeInput.focus();
-    setStatus("pairing", "Enter code from terminal");
+    setStatus("pairing", "Enter code");
   }
 
   confirmBtn.disabled = false;
@@ -161,13 +177,11 @@ pasteBtn.addEventListener("click", async () => {
       return;
     }
 
-    // Save the token and try to connect
     await chrome.runtime.sendMessage({
       type: "update-settings",
       payload: { auth_token: text.trim() },
     } as ArgusInternalMessage);
 
-    // Check if it works
     setTimeout(async () => {
       const status = await chrome.runtime.sendMessage({
         type: "get-status",
@@ -201,45 +215,38 @@ saveBtn.addEventListener("click", async () => {
   setTimeout(checkConnection, 500);
 });
 
-// --- Toggle saves ---
-autoCaptureCheck.addEventListener("change", async () => {
-  captureSettingsDiv.style.display = autoCaptureCheck.checked ? "" : "none";
+// --- Settings saves with feedback ---
+async function updateSetting(payload: Partial<ArgusSettings>) {
   await chrome.runtime.sendMessage({
     type: "update-settings",
-    payload: { auto_capture: autoCaptureCheck.checked },
+    payload,
   } as ArgusInternalMessage);
+  flashSaved();
+}
+
+autoCaptureCheck.addEventListener("change", () => {
+  captureSettingsDiv.style.display = autoCaptureCheck.checked ? "" : "none";
+  updateSetting({ auto_capture: autoCaptureCheck.checked });
 });
 
-captureIntervalInput.addEventListener("change", async () => {
+captureIntervalInput.addEventListener("change", () => {
   const val = Math.max(10, Math.min(300, parseInt(captureIntervalInput.value) || 30));
   captureIntervalInput.value = String(val);
-  await chrome.runtime.sendMessage({
-    type: "update-settings",
-    payload: { capture_interval_s: val },
-  } as ArgusInternalMessage);
+  updateSetting({ capture_interval_s: val });
 });
 
-maxScreenshotsInput.addEventListener("change", async () => {
+maxScreenshotsInput.addEventListener("change", () => {
   const val = Math.max(3, Math.min(50, parseInt(maxScreenshotsInput.value) || 15));
   maxScreenshotsInput.value = String(val);
-  await chrome.runtime.sendMessage({
-    type: "update-settings",
-    payload: { max_screenshots: val },
-  } as ArgusInternalMessage);
+  updateSetting({ max_screenshots: val });
 });
 
-captureLogsCheck.addEventListener("change", async () => {
-  await chrome.runtime.sendMessage({
-    type: "update-settings",
-    payload: { capture_console_logs: captureLogsCheck.checked },
-  } as ArgusInternalMessage);
+captureLogsCheck.addEventListener("change", () => {
+  updateSetting({ capture_console_logs: captureLogsCheck.checked });
 });
 
-captureNetworkCheck.addEventListener("change", async () => {
-  await chrome.runtime.sendMessage({
-    type: "update-settings",
-    payload: { capture_network: captureNetworkCheck.checked },
-  } as ArgusInternalMessage);
+captureNetworkCheck.addEventListener("change", () => {
+  updateSetting({ capture_network: captureNetworkCheck.checked });
 });
 
 // --- Disconnect ---
