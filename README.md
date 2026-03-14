@@ -144,9 +144,16 @@ Open your web app in Chrome and talk to your agent:
 - *"Run an accessibility audit on the page"*
 - *"Check the performance metrics — is LCP too slow?"*
 
-## MCP Tools (31)
+## 31 MCP Tools
 
-### Observation (10 tools)
+**Observe** — console errors, network failures, screenshots, page info, element details, error source mapping
+**Act** — click, type, scroll, navigate, fill forms, run JS, highlight elements
+**Inspect** — React/Vue/Svelte/Angular component props, state, hooks, context
+**Test** — visual regression (pixel-diff), responsive audit (mobile/tablet/desktop), accessibility
+**Measure** — Web Vitals, localStorage, sessionStorage, cookies
+
+<details>
+<summary><strong>Observation</strong> (10 tools)</summary>
 
 | Tool | What it does |
 |------|-------------|
@@ -161,7 +168,10 @@ Open your web app in Chrome and talk to your agent:
 | `get_error_source_context` | Parse stack trace to file:line:column with workspace path mapping |
 | `clear_context` | Clear stored context |
 
-### Browser Actions (8 tools)
+</details>
+
+<details>
+<summary><strong>Browser Actions</strong> (8 tools)</summary>
 
 | Tool | What it does |
 |------|-------------|
@@ -174,14 +184,20 @@ Open your web app in Chrome and talk to your agent:
 | `highlight_element` | Highlight an element with a colored outline for debugging |
 | `wait_for_element` | Wait for an element to appear (for async UI) |
 
-### Framework Inspection (2 tools)
+</details>
+
+<details>
+<summary><strong>Framework Inspection</strong> (2 tools)</summary>
 
 | Tool | What it does |
 |------|-------------|
 | `detect_framework` | Detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery |
 | `inspect_component` | Read component name, props, state, hooks, context for any element |
 
-### Visual Regression (4 tools)
+</details>
+
+<details>
+<summary><strong>Visual Regression</strong> (4 tools)</summary>
 
 | Tool | What it does |
 |------|-------------|
@@ -190,7 +206,10 @@ Open your web app in Chrome and talk to your agent:
 | `list_baselines` | List all saved baselines |
 | `delete_baseline` | Delete a saved baseline |
 
-### Advanced (7 tools)
+</details>
+
+<details>
+<summary><strong>Advanced</strong> (7 tools)</summary>
 
 | Tool | What it does |
 |------|-------------|
@@ -202,26 +221,19 @@ Open your web app in Chrome and talk to your agent:
 | `get_cookies` | List cookies for current domain |
 | `get_accessibility_issues` | Audit for missing alt text, labels, contrast, headings |
 
-## Features
+</details>
 
-- **31 MCP tools** — observe, act, inspect, compare, audit
-- **Component inspector** — read React/Vue/Svelte/Angular component props, state, hooks, and context
-- **Visual regression** — snapshot baselines and pixel-diff after changes
-- **Error source mapping** — parse stack traces to file:line:column, maps URLs to workspace paths
-- **Responsive audit** — capture mobile, tablet, and desktop screenshots in one call
-- **Agent browser actions** — click, type, scroll, navigate, fill forms, run JS in the page
-- **Framework detection** — auto-detect React, Vue, Svelte, Angular, Next.js, Nuxt, jQuery
-- **Performance metrics** — Web Vitals (LCP, FCP, TTFB), memory, resource breakdown
-- **Accessibility auditing** — missing alt text, unlabeled inputs, heading skips, low contrast
-- **Storage & cookies** — read localStorage, sessionStorage, and cookies
-- **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
-- **Smart screenshots** — JPEG compressed, resized, sent as native image content blocks (low token cost)
+## Highlights
+
+- **Local-first** — all data stays on your machine, server binds to `127.0.0.1` only
+- **Smart screenshots** — JPEG compressed, resized, native image content (low token cost)
 - **Noise filtering** — blocks analytics, HMR, browser extension traffic automatically
 - **Error deduplication** — same error in a loop won't flood the buffer
 - **Sensitive data stripping** — `Authorization`, `Cookie` headers redacted automatically
-- **Local-first** — all data stays on your machine, server binds to `127.0.0.1` only
+- **Auto-capture** — screenshots on page load, tab switch, user clicks, and periodic intervals
 
-## Configuration
+<details>
+<summary><strong>Configuration</strong></summary>
 
 ### Server (environment variables)
 
@@ -245,7 +257,10 @@ Open your web app in Chrome and talk to your agent:
 | Network Traffic | On | Capture HTTP requests |
 | Agent Actions | On | Let AI click, type, navigate, and inspect the page |
 
-## Project Structure
+</details>
+
+<details>
+<summary><strong>Project Structure</strong></summary>
 
 ```
 argus/
@@ -272,6 +287,8 @@ argus/
 ├── .github/workflows/          # CI: lint, test, build
 └── LICENSE                     # BSL 1.1
 ```
+
+</details>
 
 ## Security
 
