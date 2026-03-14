@@ -1347,3 +1347,21 @@ async function execCaptureViewport(
     return { success: false, error: e.message };
   }
 }
+
+// --- Test exports (used by vitest, harmless in ESM service worker) ---
+export {
+  buildDescription,
+  pageClick,
+  pageType,
+  pageScroll,
+  pageGetText,
+  pageRunJs,
+  pageHighlight,
+  pageWaitFor,
+  pageFillForm,
+  pageGetPerf,
+  pageGetStorage,
+  pageA11yAudit,
+  pageDetectFramework,
+  pageInspectComponent,
+};
