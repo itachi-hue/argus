@@ -483,6 +483,10 @@ async function executeCommand(cmd: BrowserCommand): Promise<{ success: boolean; 
         return await execGetCookies(tab.url || "");
       case "a11y_audit":
         return await execInPage(tab.id, pageA11yAudit, [cmd.params.selector]);
+      case "inspect_component":
+        return await execInPageMain(tab.id, pageInspectComponent, [cmd.params.selector]);
+      case "detect_framework":
+        return await execInPageMain(tab.id, pageDetectFramework, []);
       default:
         return { success: false, error: `Unknown action: ${cmd.action}` };
     }
@@ -932,6 +936,339 @@ function pageA11yAudit(scopeSelector: string | null) {
   };
 
   return { success: true, result: { summary, issues: issues.slice(0, 50) } };
+}
+
+// ═══════════════════════════════════════════════════════════
+// Component inspector — detect frameworks, read React/Vue/Svelte state
+// ═══════════════════════════════════════════════════════════
+
+function pageDetectFramework() {
+  const frameworks: Record<string, any> = {};
+  const w = window as any;
+
+  // React
+  const reactRoot =
+    document.querySelector("[data-reactroot]") ||
+    document.getElementById("__next") ||
+    document.getElementById("root");
+  if (w.__REACT_DEVTOOLS_GLOBAL_HOOK__ || reactRoot) {
+    frameworks.react = {
+      detected: true,
+      version: w.React?.version || w.__REACT_DEVTOOLS_GLOBAL_HOOK__?.renderers?.values?.()?.next?.()?.value?.version || "unknown",
+    };
+  }
+
+  // Next.js
+  if (w.__NEXT_DATA__) {
+    frameworks.nextjs = {
+      detected: true,
+      buildId: w.__NEXT_DATA__.buildId || "unknown",
+      page: w.__NEXT_DATA__.page || "unknown",
+    };
+  }
+
+  // Vue 3
+  const vue3Root = document.querySelector("[data-v-app]") || document.querySelector("#app");
+  if (w.__VUE__ || w.__VUE_DEVTOOLS_GLOBAL_HOOK__) {
+    frameworks.vue = {
+      detected: true,
+      version: w.Vue?.version || "3.x",
+    };
+  } else if (vue3Root && (vue3Root as any).__vue_app__) {
+    frameworks.vue = {
+      detected: true,
+      version: (vue3Root as any).__vue_app__?.version || "3.x",
+    };
+  }
+
+  // Vue 2
+  if (!frameworks.vue && w.Vue) {
+    frameworks.vue = {
+      detected: true,
+      version: w.Vue.version || "2.x",
+    };
+  }
+
+  // Svelte
+  if (document.querySelector("[class*='svelte-']") || w.__svelte) {
+    frameworks.svelte = { detected: true };
+  }
+
+  // Angular
+  const ngVersionEl = document.querySelector("[ng-version]");
+  if (w.ng || w.getAllAngularRootElements || ngVersionEl) {
+    frameworks.angular = {
+      detected: true,
+      version: ngVersionEl?.getAttribute("ng-version") || "unknown",
+    };
+  }
+
+  // Nuxt
+  if (w.__NUXT__ || w.$nuxt) {
+    frameworks.nuxt = {
+      detected: true,
+      version: w.__NUXT__?.config?.public?.version || "unknown",
+    };
+  }
+
+  // jQuery
+  if (w.jQuery || w.$?.fn?.jquery) {
+    frameworks.jquery = {
+      detected: true,
+      version: w.jQuery?.fn?.jquery || w.$?.fn?.jquery || "unknown",
+    };
+  }
+
+  if (Object.keys(frameworks).length === 0) {
+    return { success: true, result: { message: "No known frameworks detected", frameworks: {} } };
+  }
+  return { success: true, result: frameworks };
+}
+
+function pageInspectComponent(selector: string) {
+  const el = document.querySelector(selector);
+  if (!el) return { success: false, error: `Element not found: ${selector}` };
+
+  const result: Record<string, any> = {
+    selector,
+    tag: el.tagName.toLowerCase(),
+    frameworks: {},
+  };
+
+  // --- React ---
+  // React 16+ attaches fiber nodes with keys like __reactFiber$xxxx or __reactInternalInstance$xxxx
+  const reactKey = Object.keys(el).find(
+    (k) => k.startsWith("__reactFiber$") || k.startsWith("__reactInternalInstance$")
+  );
+  if (reactKey) {
+    try {
+      const fiber = (el as any)[reactKey];
+      const component: Record<string, any> = {};
+
+      // Walk up to find the nearest non-host (non-DOM) fiber = actual component
+      let current = fiber;
+      while (current) {
+        if (typeof current.type === "function" || typeof current.type === "object") {
+          component.name = current.type?.displayName || current.type?.name || "Anonymous";
+
+          // Props
+          if (current.memoizedProps) {
+            try {
+              const props: Record<string, any> = {};
+              for (const [k, v] of Object.entries(current.memoizedProps)) {
+                if (k === "children") {
+                  props.children = typeof v === "string" ? v : (Array.isArray(v) ? `[${v.length} children]` : "[child]");
+                } else if (typeof v === "function") {
+                  props[k] = `ƒ ${v.name || "anonymous"}()`;
+                } else {
+                  try {
+                    const str = JSON.stringify(v);
+                    props[k] = str && str.length > 200 ? str.slice(0, 200) + "..." : v;
+                  } catch {
+                    props[k] = String(v);
+                  }
+                }
+              }
+              component.props = props;
+            } catch {
+              component.props = "[unable to serialize]";
+            }
+          }
+
+          // State (hooks for functional components)
+          if (current.memoizedState !== null && current.memoizedState !== undefined) {
+            try {
+              const hooks: any[] = [];
+              let hook = current.memoizedState;
+              let hookIndex = 0;
+              while (hook && hookIndex < 20) {
+                const state = hook.memoizedState;
+                if (state !== undefined && state !== null) {
+                  // Skip internal React objects
+                  if (typeof state === "object" && state.hasOwnProperty("current")) {
+                    hooks.push({ index: hookIndex, type: "ref", value: String(state.current).slice(0, 200) });
+                  } else if (typeof state === "object" && state.hasOwnProperty("memoizedState")) {
+                    // Nested — likely useReducer or complex hook
+                    hooks.push({ index: hookIndex, type: "reducer", value: "[complex state]" });
+                  } else {
+                    try {
+                      const serialized = JSON.stringify(state);
+                      hooks.push({
+                        index: hookIndex,
+                        type: typeof state,
+                        value: serialized && serialized.length > 300 ? serialized.slice(0, 300) + "..." : state,
+                      });
+                    } catch {
+                      hooks.push({ index: hookIndex, type: typeof state, value: String(state).slice(0, 200) });
+                    }
+                  }
+                }
+                hook = hook.next;
+                hookIndex++;
+              }
+              if (hooks.length > 0) component.hooks = hooks;
+            } catch {
+              component.state = "[unable to read hooks]";
+            }
+          }
+
+          // Context
+          if (current.dependencies) {
+            try {
+              const contexts: string[] = [];
+              let dep = current.dependencies?.firstContext;
+              while (dep) {
+                const ctxName = dep.context?.displayName || dep.context?._currentValue?.constructor?.name || "Context";
+                contexts.push(ctxName);
+                dep = dep.next;
+              }
+              if (contexts.length > 0) component.contexts = contexts;
+            } catch { /* ignore */ }
+          }
+
+          result.frameworks.react = component;
+          break;
+        }
+        current = current.return;
+      }
+
+      // Also find parent components (up to 3 levels)
+      if (current?.return) {
+        const parents: string[] = [];
+        let parent = current.return;
+        let depth = 0;
+        while (parent && depth < 3) {
+          if (typeof parent.type === "function" || typeof parent.type === "object") {
+            parents.push(parent.type?.displayName || parent.type?.name || "Anonymous");
+            depth++;
+          }
+          parent = parent.return;
+        }
+        if (parents.length > 0) {
+          (result.frameworks.react as any).parentComponents = parents;
+        }
+      }
+    } catch (e: any) {
+      result.frameworks.react = { error: e.message || "Failed to read React fiber" };
+    }
+  }
+
+  // --- Vue 3 ---
+  const vueInstance = (el as any).__vueParentComponent || (el as any).__vue_app__;
+  if (vueInstance) {
+    try {
+      const component: Record<string, any> = {};
+      const ctx = vueInstance.ctx || vueInstance;
+      component.name = vueInstance.type?.name || vueInstance.type?.__name || "Anonymous";
+
+      // Props
+      if (vueInstance.props) {
+        const props: Record<string, any> = {};
+        for (const [k, v] of Object.entries(vueInstance.props)) {
+          if (typeof v === "function") {
+            props[k] = `ƒ ${(v as Function).name || "anonymous"}()`;
+          } else {
+            try {
+              const str = JSON.stringify(v);
+              props[k] = str && str.length > 200 ? str.slice(0, 200) + "..." : v;
+            } catch {
+              props[k] = String(v);
+            }
+          }
+        }
+        component.props = props;
+      }
+
+      // Data/state from setup return
+      if (vueInstance.setupState) {
+        const state: Record<string, any> = {};
+        for (const [k, v] of Object.entries(vueInstance.setupState)) {
+          if (typeof v === "function") continue;
+          try {
+            const str = JSON.stringify(v);
+            state[k] = str && str.length > 200 ? str.slice(0, 200) + "..." : v;
+          } catch {
+            state[k] = String(v);
+          }
+        }
+        if (Object.keys(state).length > 0) component.state = state;
+      }
+
+      result.frameworks.vue = component;
+    } catch (e: any) {
+      result.frameworks.vue = { error: e.message || "Failed to read Vue component" };
+    }
+  }
+
+  // --- Vue 2 ---
+  const vue2Instance = (el as any).__vue__;
+  if (vue2Instance && !result.frameworks.vue) {
+    try {
+      const component: Record<string, any> = {};
+      component.name = vue2Instance.$options?.name || vue2Instance.$options?._componentTag || "Anonymous";
+      if (vue2Instance.$props) {
+        component.props = {};
+        for (const [k, v] of Object.entries(vue2Instance.$props)) {
+          component.props[k] = typeof v === "function" ? `ƒ()` : String(v).slice(0, 200);
+        }
+      }
+      if (vue2Instance.$data) {
+        component.data = {};
+        for (const [k, v] of Object.entries(vue2Instance.$data)) {
+          component.data[k] = typeof v === "function" ? `ƒ()` : String(v).slice(0, 200);
+        }
+      }
+      result.frameworks.vue = component;
+    } catch (e: any) {
+      result.frameworks.vue = { error: e.message || "Failed to read Vue 2 instance" };
+    }
+  }
+
+  // --- Svelte ---
+  const svelteKey = Object.keys(el).find((k) => k.startsWith("__svelte"));
+  if (svelteKey) {
+    try {
+      const ctx = (el as any)[svelteKey];
+      result.frameworks.svelte = {
+        detected: true,
+        context: String(ctx).slice(0, 500),
+      };
+    } catch (e: any) {
+      result.frameworks.svelte = { error: e.message };
+    }
+  }
+
+  // --- Angular ---
+  const ngDebug = (window as any).ng;
+  if (ngDebug?.getComponent) {
+    try {
+      const comp = ngDebug.getComponent(el);
+      if (comp) {
+        const component: Record<string, any> = {};
+        component.name = comp.constructor?.name || "Unknown";
+        const state: Record<string, any> = {};
+        for (const [k, v] of Object.entries(comp)) {
+          if (k.startsWith("_") || typeof v === "function") continue;
+          try {
+            const str = JSON.stringify(v);
+            state[k] = str && str.length > 200 ? str.slice(0, 200) + "..." : v;
+          } catch {
+            state[k] = String(v).slice(0, 200);
+          }
+        }
+        component.state = state;
+        result.frameworks.angular = component;
+      }
+    } catch (e: any) {
+      result.frameworks.angular = { error: e.message };
+    }
+  }
+
+  if (Object.keys(result.frameworks).length === 0) {
+    result.message = "No framework component found on this element. Try a parent element or a different selector.";
+  }
+
+  return { success: true, result };
 }
 
 // ═══════════════════════════════════════════════════════════

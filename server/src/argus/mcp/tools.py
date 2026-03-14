@@ -1,9 +1,4 @@
-"""MCP tool definitions — the agent-facing interface.
-
-23 tools total:
-  9 existing   — console, network, screenshots, element, page info, clear
-  14 new       — browser actions, perf, storage, cookies, a11y
-"""
+"""MCP tool definitions — the agent-facing interface."""
 
 import json
 
@@ -337,6 +332,39 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue) -> FastM
         Returns cookie names, values (first 50 chars), domains, paths, and flags.
         """
         cmd_id = command_queue.enqueue("get_cookies", {})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result, indent=2)
+
+    # ═══════════════════════════════════════════════════════════════
+    # FRAMEWORK INSPECTION TOOLS — React, Vue, Svelte, Angular
+    # ═══════════════════════════════════════════════════════════════
+
+    @mcp.tool()
+    async def detect_framework() -> str:
+        """Detect which frontend frameworks are used on the current page.
+
+        Returns detected frameworks with versions: React, Vue, Svelte, Angular,
+        Next.js, Nuxt, jQuery, and more.
+        """
+        cmd_id = command_queue.enqueue("detect_framework", {})
+        result = await command_queue.wait_for_result(cmd_id)
+        return json.dumps(result, indent=2)
+
+    @mcp.tool()
+    async def inspect_component(selector: str) -> str:
+        """Inspect the React/Vue/Svelte/Angular component at a DOM element.
+
+        Returns component name, props, state (hooks for React), context,
+        parent components, and framework-specific details.
+
+        This is the most powerful debugging tool for frontend development —
+        see exactly what data a component is working with.
+
+        Args:
+            selector: CSS selector for the DOM element (e.g. '.user-card', '#modal', 'button.submit').
+                      The tool finds the nearest framework component that owns this element.
+        """
+        cmd_id = command_queue.enqueue("inspect_component", {"selector": selector})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 
