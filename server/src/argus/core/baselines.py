@@ -109,4 +109,3 @@ def compare_screenshots(baseline_b64: str, current_b64: str) -> dict:
         "diff_image": _image_to_b64(diff_visual),
         "match": change_pct < 0.1,
     }
-

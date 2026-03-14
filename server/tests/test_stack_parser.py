@@ -88,4 +88,3 @@ class TestParseError:
         assert d["message"] == "Error"
         assert len(d["locations"]) == 1
         assert d["primary"]["file"] == "src/a.ts"
-

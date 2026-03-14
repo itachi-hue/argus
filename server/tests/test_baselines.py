@@ -95,4 +95,3 @@ class TestCompareScreenshots:
         raw = base64.b64decode(result["diff_image"])
         img = Image.open(io.BytesIO(raw))
         assert img.format == "JPEG"
-

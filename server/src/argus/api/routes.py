@@ -116,11 +116,14 @@ def create_router(
 
     @router.post("/commands/{command_id}/result")
     async def submit_command_result(command_id: str, req: CommandResultRequest):
-        command_queue.set_result(command_id, {
-            "success": req.success,
-            "result": req.result,
-            "error": req.error,
-        })
+        command_queue.set_result(
+            command_id,
+            {
+                "success": req.success,
+                "result": req.result,
+                "error": req.error,
+            },
+        )
         return {"accepted": True}
 
     # --- Settings ---

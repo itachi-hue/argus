@@ -35,7 +35,11 @@ class TestCommandQueue:
         q.set_result(cmd_id, {"success": True, "result": {"clicked": "#btn"}})
 
         # Result should be available via wait
-        result = asyncio.get_event_loop().run_until_complete(q.wait_for_result(cmd_id, timeout=1.0))
+        loop = asyncio.new_event_loop()
+        try:
+            result = loop.run_until_complete(q.wait_for_result(cmd_id, timeout=1.0))
+        finally:
+            loop.close()
         assert result["success"] is True
 
     def test_wait_for_result_timeout(self):
@@ -44,7 +48,11 @@ class TestCommandQueue:
         q.get_pending()
 
         # Don't set any result — should timeout
-        result = asyncio.get_event_loop().run_until_complete(q.wait_for_result(cmd_id, timeout=0.5))
+        loop = asyncio.new_event_loop()
+        try:
+            result = loop.run_until_complete(q.wait_for_result(cmd_id, timeout=0.5))
+        finally:
+            loop.close()
         assert result["success"] is False
         assert "Timeout" in result["error"]
 
@@ -81,4 +89,3 @@ class TestCommandAPI:
     def test_requires_auth(self, client):
         resp = client.get("/api/commands/pending")
         assert resp.status_code == 401
-

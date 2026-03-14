@@ -76,4 +76,3 @@ class CommandQueue:
             stale = [k for k, v in self._results.items() if isinstance(v, dict) and now - v.get("_ts", 0) > 60]
             for k in stale:
                 del self._results[k]
-

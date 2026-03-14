@@ -186,7 +186,3 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, _sender, sendRe
 
 // --- Test exports (stripped by esbuild IIFE format in production) ---
 export { flushBuffer, buildSelector, captureElement, errorBuffer, consoleBuffer, networkBuffer, MAX_BUFFER_SIZE };
-
-
-
-

@@ -11,7 +11,9 @@ from argus.core.stack_parser import parse_error
 from argus.store.base import ContextStore
 
 
-def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline_store: BaselineStore | None = None) -> FastMCP:
+def create_mcp_server(
+    store: ContextStore, command_queue: CommandQueue, baseline_store: BaselineStore | None = None
+) -> FastMCP:
     if baseline_store is None:
         baseline_store = BaselineStore()
     mcp = FastMCP(
@@ -329,10 +331,12 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline
         if not screenshot_data:
             return [TextContent(type="text", text="Viewport captured but no screenshot data returned.")]
 
-        metadata = json.dumps({
-            "viewport": {"width": width, "height": height},
-            "url": result.get("result", {}).get("url", ""),
-        })
+        metadata = json.dumps(
+            {
+                "viewport": {"width": width, "height": height},
+                "url": result.get("result", {}).get("url", ""),
+            }
+        )
         return [
             TextContent(type="text", text=metadata),
             ImageContent(type="image", data=screenshot_data, mimeType="image/jpeg"),
@@ -388,12 +392,14 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline
         if not screenshot:
             return "No screenshots available. Capture one first."
         baseline_store.save(name, screenshot.data)
-        return json.dumps({
-            "saved": name,
-            "url": screenshot.url,
-            "timestamp": screenshot.timestamp,
-            "all_baselines": baseline_store.list_names(),
-        })
+        return json.dumps(
+            {
+                "saved": name,
+                "url": screenshot.url,
+                "timestamp": screenshot.timestamp,
+                "all_baselines": baseline_store.list_names(),
+            }
+        )
 
     @mcp.tool()
     def compare_with_baseline(name: str) -> list[TextContent | ImageContent]:
@@ -419,14 +425,17 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline
 
         result = compare_screenshots(baseline_data, current.data)
 
-        summary = json.dumps({
-            "baseline": name,
-            "match": result["match"],
-            "change_percent": result["change_percent"],
-            "changed_pixels": result["changed_pixels"],
-            "total_pixels": result["total_pixels"],
-            "verdict": "No visual changes" if result["match"] else f"{result['change_percent']}% of pixels changed",
-        }, indent=2)
+        summary = json.dumps(
+            {
+                "baseline": name,
+                "match": result["match"],
+                "change_percent": result["change_percent"],
+                "changed_pixels": result["changed_pixels"],
+                "total_pixels": result["total_pixels"],
+                "verdict": "No visual changes" if result["match"] else f"{result['change_percent']}% of pixels changed",
+            },
+            indent=2,
+        )
 
         # Return summary + diff image
         return [
@@ -514,6 +523,7 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline
             await command_queue.wait_for_result(nav_id, timeout=10.0)
             # Wait for page to settle
             import asyncio
+
             await asyncio.sleep(2.0)
 
         captures = []
@@ -528,30 +538,45 @@ def create_mcp_server(store: ContextStore, command_queue: CommandQueue, baseline
             if result.get("success"):
                 screenshot_data = result.get("result", {}).get("screenshot")
                 bp_url = result.get("result", {}).get("url", "")
-                summary_items.append({
-                    "breakpoint": bp["name"],
-                    "device": bp["device"],
-                    "viewport": f"{bp['width']}x{bp['height']}",
-                    "url": bp_url,
-                    "captured": True,
-                })
+                summary_items.append(
+                    {
+                        "breakpoint": bp["name"],
+                        "device": bp["device"],
+                        "viewport": f"{bp['width']}x{bp['height']}",
+                        "url": bp_url,
+                        "captured": True,
+                    }
+                )
                 if screenshot_data:
-                    results.append(TextContent(type="text", text=f"--- {bp['device']} ({bp['width']}x{bp['height']}) ---"))
+                    results.append(
+                        TextContent(type="text", text=f"--- {bp['device']} ({bp['width']}x{bp['height']}) ---")
+                    )
                     results.append(ImageContent(type="image", data=screenshot_data, mimeType="image/jpeg"))
             else:
-                summary_items.append({
-                    "breakpoint": bp["name"],
-                    "device": bp["device"],
-                    "viewport": f"{bp['width']}x{bp['height']}",
-                    "captured": False,
-                    "error": result.get("error", "Unknown error"),
-                })
+                summary_items.append(
+                    {
+                        "breakpoint": bp["name"],
+                        "device": bp["device"],
+                        "viewport": f"{bp['width']}x{bp['height']}",
+                        "captured": False,
+                        "error": result.get("error", "Unknown error"),
+                    }
+                )
 
         # Prepend summary
-        results.insert(0, TextContent(type="text", text=json.dumps({
-            "audit": "responsive",
-            "breakpoints": summary_items,
-        }, indent=2)))
+        results.insert(
+            0,
+            TextContent(
+                type="text",
+                text=json.dumps(
+                    {
+                        "audit": "responsive",
+                        "breakpoints": summary_items,
+                    },
+                    indent=2,
+                ),
+            ),
+        )
 
         return results
 

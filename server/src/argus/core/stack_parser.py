@@ -182,4 +182,3 @@ def parse_error(message: str, stack: str) -> ParsedError:
         source_locations=locations,
         primary_location=primary,
     )
-
