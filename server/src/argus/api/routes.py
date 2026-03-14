@@ -20,6 +20,11 @@ from argus.store.base import ContextStore
 class UpdateSettingsRequest(BaseModel):
     max_screenshots: int | None = None
 
+    def validated_max_screenshots(self) -> int | None:
+        if self.max_screenshots is None:
+            return None
+        return max(1, min(self.max_screenshots, 50))
+
 
 def create_router(
     store: ContextStore,
@@ -95,8 +100,9 @@ def create_router(
 
     @router.patch("/settings")
     async def update_settings(req: UpdateSettingsRequest):
-        if req.max_screenshots is not None:
-            store.set_max_screenshots(req.max_screenshots)
+        val = req.validated_max_screenshots()
+        if val is not None:
+            store.set_max_screenshots(val)
         return {"updated": True}
 
     @router.delete("/context")
