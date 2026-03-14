@@ -74,12 +74,12 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 │  │  HTTP Server │         │  MCP Server (stdio)    │        │
 │  │  (FastAPI)   │         │                        │        │
 │  │              │         │  Tools:                │        │
-│  │  /ingest/*   │────────►│  31 MCP Tools:         │        │
+│  │  /ingest/*   │────────►│  32 MCP Tools:         │        │
 │  │  /health     │  write  │  - 10 observation      │        │
-│  │  /commands/* │         │  - 8 browser actions   │        │
+│  │  /commands/* │         │  - 10 browser actions  │        │
 │  └──────────────┘         │  - 2 framework inspect │        │
 │                           │  - 4 visual regression │        │
-│                           │  - 7 advanced          │        │
+│                           │  - 6 advanced          │        │
 │         │                 │                        │        │
 │         ▼                 │  Command Queue:        │        │
 │  ┌──────────────┐         │  agent→server→ext→page │        │

@@ -178,7 +178,7 @@ Open your web app in Chrome and talk to your agent:
 - *"Run an accessibility audit on the page"*
 - *"Check the performance metrics — is LCP too slow?"*
 
-## MCP Tools (31)
+## MCP Tools (32)
 
 ### Observation (10 tools)
 

@@ -450,7 +450,9 @@ async function executeCommand(cmd: BrowserCommand): Promise<{ success: boolean; 
   if (!tab?.id) return { success: false, error: "No active tab" };
 
   const url = tab.url || "";
-  if (url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
+  // Some commands don't inject scripts and can work on chrome:// pages.
+  const noScriptActions = new Set(["take_screenshot", "navigate", "get_cookies"]);
+  if (!noScriptActions.has(cmd.action) && (url.startsWith("chrome://") || url.startsWith("chrome-extension://"))) {
     return { success: false, error: "Cannot execute on chrome:// or extension pages" };
   }
 
@@ -1388,10 +1390,9 @@ async function execGetCookies(url: string): Promise<any> {
 
 async function execTakeScreenshot(tab: chrome.tabs.Tab): Promise<any> {
   try {
-    const screenshotData = await captureScreenshot("manual");
-    if (!screenshotData) {
-      return { success: false, error: "Failed to capture screenshot" };
-    }
+    // Call captureVisibleTab directly so we get the actual error message
+    const dataUrl = await chrome.tabs.captureVisibleTab(undefined!, { format: "jpeg", quality: 40 });
+    const screenshotData = dataUrl.replace(/^data:image\/jpeg;base64,/, "");
 
     // Also store it in the server
     await sendToServer("/ingest/screenshot", {
@@ -1414,7 +1415,7 @@ async function execTakeScreenshot(tab: chrome.tabs.Tab): Promise<any> {
       },
     };
   } catch (e: any) {
-    return { success: false, error: e.message };
+    return { success: false, error: `Screenshot capture failed: ${e.message || String(e)}` };
   }
 }
 
