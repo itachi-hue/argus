@@ -133,21 +133,7 @@ working directory: /path/to/project_argus/server
 url: http://127.0.0.1:42777/mcp/sse
 ```
 
-### 3. Get the Auth Token
-
-When the MCP server starts, it writes the auth token to `~/.argus/config.json`. You can grab it with:
-
-```bash
-# Mac/Linux
-cat ~/.argus/config.json
-
-# Windows (PowerShell)
-Get-Content "$env:USERPROFILE\.argus\config.json"
-```
-
-The token is auto-generated on first run and persists across restarts.
-
-### 4. Install the Chrome Extension
+### 3. Install the Chrome Extension
 
 ```bash
 cd extension
@@ -160,9 +146,22 @@ Then load it in Chrome:
 1. Open `chrome://extensions`
 2. Enable **Developer mode** (toggle in top-right)
 3. Click **Load unpacked** → select the `extension/` folder
-4. Click the Argus extension icon in the toolbar → paste the auth token from step 3 → **Save & Connect**
 
-The popup should show a green **Connected** status.
+### 4. Connect Extension to Server
+
+Three ways, from easiest to manual:
+
+**One-click pairing** (recommended):
+1. Click the Argus extension icon → **Connect to Server**
+2. A 4-digit code appears in your terminal
+3. Type it in the extension popup → connected!
+
+**Paste from clipboard:**
+- The server auto-copies the auth token to your clipboard on startup
+- Click the Argus icon → **Paste Token from Clipboard** → done
+
+**Manual:**
+- Token is saved in `~/.argus/config.json` — copy it and paste in the extension's manual setup section
 
 ### 5. Use It
 

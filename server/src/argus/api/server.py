@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mcp.server.fastmcp import FastMCP
 
 from argus.api.middleware import AuthMiddleware, PayloadSizeMiddleware, RateLimitMiddleware
+from argus.api.pairing import create_pairing_router
 from argus.api.routes import create_router
 from argus.config import Settings
 from argus.core.dedup import ErrorDeduplicator
@@ -41,6 +42,10 @@ def create_app(
     # Routes
     router = create_router(store, noise_filter, deduplicator, sanitizer)
     app.include_router(router)
+
+    # Pairing routes (no auth required)
+    pair_router, _ = create_pairing_router(config.auth_token)
+    app.include_router(pair_router)
 
     # Mount MCP SSE transport if provided
     if mcp is not None:

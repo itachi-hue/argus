@@ -99,6 +99,34 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendRes
     return true;
   }
 
+  if (msg.type === "pair-request") {
+    fetch(`${settings.server_url}/api/pair`, { method: "POST" })
+      .then((r) => r.json())
+      .then((data) => sendResponse({ ok: true, message: data.message }))
+      .catch(() => sendResponse({ ok: false, error: "Cannot reach server. Is it running?" }));
+    return true;
+  }
+
+  if (msg.type === "pair-confirm" && msg.payload?.code) {
+    fetch(`${settings.server_url}/api/pair/confirm`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ code: msg.payload.code }),
+    })
+      .then(async (r) => {
+        const data = await r.json();
+        if (r.ok && data.token) {
+          settings = { ...settings, auth_token: data.token };
+          chrome.storage.local.set({ argus_settings: settings });
+          sendResponse({ ok: true, token: data.token });
+        } else {
+          sendResponse({ ok: false, error: data.error || "Invalid code" });
+        }
+      })
+      .catch(() => sendResponse({ ok: false, error: "Cannot reach server" }));
+    return true;
+  }
+
   return false;
 });
 

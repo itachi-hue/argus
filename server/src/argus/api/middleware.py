@@ -14,8 +14,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
         super().__init__(app)
         self.token = token
 
+    # Paths that don't require auth
+    PUBLIC_PATHS = {"/api/health", "/api/pair", "/api/pair/confirm"}
+
     async def dispatch(self, request: Request, call_next):
-        if request.url.path == "/api/health":
+        if request.url.path in self.PUBLIC_PATHS:
             return await call_next(request)
 
         auth = request.headers.get("authorization", "")

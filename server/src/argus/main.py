@@ -7,6 +7,7 @@ Transport modes (ARGUS_TRANSPORT env var):
 """
 
 import logging
+import subprocess
 import sys
 import threading
 
@@ -20,6 +21,27 @@ from argus.store.memory import InMemoryStore
 
 def _run_http(app, host: str, port: int) -> None:
     uvicorn.run(app, host=host, port=port, log_level="warning")
+
+
+def _copy_to_clipboard(text: str) -> bool:
+    """Copy text to system clipboard. Returns True on success."""
+    try:
+        if sys.platform == "win32":
+            subprocess.run(["clip"], input=text.encode(), check=True, creationflags=subprocess.CREATE_NO_WINDOW)
+        elif sys.platform == "darwin":
+            subprocess.run(["pbcopy"], input=text.encode(), check=True)
+        else:
+            # Linux — try xclip, then xsel, then wl-copy
+            for cmd in [["xclip", "-selection", "clipboard"], ["xsel", "--clipboard", "--input"], ["wl-copy"]]:
+                try:
+                    subprocess.run(cmd, input=text.encode(), check=True)
+                    return True
+                except FileNotFoundError:
+                    continue
+            return False
+        return True
+    except Exception:
+        return False
 
 
 def main() -> None:
@@ -40,9 +62,14 @@ def main() -> None:
     # Build FastAPI app, mounting MCP SSE if needed
     app = create_app(store, settings, mcp=mcp if use_sse else None)
 
+    # Copy token to clipboard
+    if _copy_to_clipboard(settings.auth_token):
+        print("✅ Auth token copied to clipboard — paste it in the extension popup", file=sys.stderr)
+    else:
+        print(f"Auth token: {settings.auth_token}", file=sys.stderr)
+
     # Log connection info to stderr (stdout is reserved for MCP stdio)
     print(f"Argus HTTP server: http://{settings.host}:{settings.port}", file=sys.stderr)
-    print(f"Auth token: {settings.auth_token}", file=sys.stderr)
     print(f"Transport: {transport}", file=sys.stderr)
     if use_sse:
         print(f"MCP SSE endpoint: http://{settings.host}:{settings.port}/mcp/sse", file=sys.stderr)

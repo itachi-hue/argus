@@ -72,7 +72,9 @@ export interface ArgusInternalMessage {
     | "element-captured"
     | "capture-element-request"
     | "get-status"
-    | "update-settings";
+    | "update-settings"
+    | "pair-request"
+    | "pair-confirm";
   payload?: any;
 }
 
