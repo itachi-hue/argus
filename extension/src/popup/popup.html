@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🔭 Argus</h1>
+
+    <div id="status" class="status disconnected">
+      <span class="dot"></span>
+      <span id="status-text">Disconnected</span>
+    </div>
+
+    <div class="field">
+      <label for="server-url">Server URL</label>
+      <input type="text" id="server-url" placeholder="http://127.0.0.1:42777">
+    </div>
+
+    <div class="field">
+      <label for="auth-token">Auth Token</label>
+      <input type="password" id="auth-token" placeholder="Paste token from server output">
+    </div>
+
+    <div class="toggles">
+      <label class="toggle">
+        <input type="checkbox" id="capture-logs" checked>
+        <span>Capture console logs</span>
+      </label>
+      <label class="toggle">
+        <input type="checkbox" id="capture-network" checked>
+        <span>Capture network</span>
+      </label>
+    </div>
+
+    <button id="save-btn">Save & Connect</button>
+
+    <div class="hint">
+      Hotkey: <kbd>Ctrl+Shift+L</kbd> to capture context
+    </div>
+  </div>
+
+  <script src="../../dist/popup/popup.js" type="module"></script>
+</body>
+</html>
+
