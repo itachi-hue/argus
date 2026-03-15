@@ -137,6 +137,36 @@
         <div class="card-hint">Let AI click, type, navigate, and inspect the page</div>
       </div>
 
+      <!-- Site Filters Card -->
+      <div class="card">
+        <div class="card-header">
+          <div class="card-icon filter-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <span class="card-title">Site Filters</span>
+        </div>
+        <div class="card-body">
+          <div class="card-hint" style="padding: 0;">Control which sites Argus can access. One domain per line.</div>
+          <div class="filter-field">
+            <label for="site-denylist">
+              <span class="filter-label deny-label">Deny list</span>
+              <span class="filter-desc">Block these sites (overrides allow list)</span>
+            </label>
+            <textarea id="site-denylist" class="filter-input" rows="2" placeholder="e.g. gmail.com&#10;mybank.com" spellcheck="false"></textarea>
+          </div>
+          <details class="allowlist-details">
+            <summary>Advanced: Allow list</summary>
+            <div class="filter-field" style="margin-top: 8px;">
+              <label for="site-allowlist">
+                <span class="filter-label allow-label">Allow list</span>
+                <span class="filter-desc">Only capture from these sites (empty = all)</span>
+              </label>
+              <textarea id="site-allowlist" class="filter-input" rows="2" placeholder="e.g. localhost&#10;staging.myapp.com" spellcheck="false"></textarea>
+            </div>
+          </details>
+        </div>
+      </div>
+
       <!-- Save indicator -->
       <div id="save-toast" class="save-toast hidden">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>

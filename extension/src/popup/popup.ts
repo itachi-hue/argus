@@ -27,6 +27,8 @@ const captureIntervalInput = document.getElementById("capture-interval") as HTML
 const maxScreenshotsInput = document.getElementById("max-screenshots") as HTMLInputElement;
 const captureSettingsDiv = document.getElementById("capture-settings") as HTMLDivElement;
 const agentActionsCheck = document.getElementById("agent-actions") as HTMLInputElement;
+const siteDenylistInput = document.getElementById("site-denylist") as HTMLTextAreaElement;
+const siteAllowlistInput = document.getElementById("site-allowlist") as HTMLTextAreaElement;
 const disconnectBtn = document.getElementById("disconnect-btn") as HTMLButtonElement;
 const saveToast = document.getElementById("save-toast") as HTMLDivElement;
 
@@ -80,6 +82,10 @@ async function loadSettings() {
   maxScreenshotsInput.value = String(s.max_screenshots || 15);
   captureSettingsDiv.style.display = autoCaptureCheck.checked ? "" : "none";
   agentActionsCheck.checked = s.agent_actions !== false;
+
+  // Site filters
+  siteDenylistInput.value = (s.site_denylist || []).join("\n");
+  siteAllowlistInput.value = (s.site_allowlist || []).join("\n");
 }
 
 // --- Check connection ---
@@ -253,6 +259,22 @@ captureNetworkCheck.addEventListener("change", () => {
 
 agentActionsCheck.addEventListener("change", () => {
   updateSetting({ agent_actions: agentActionsCheck.checked });
+});
+
+// --- Site filter handlers ---
+function parseLines(text: string): string[] {
+  return text
+    .split("\n")
+    .map((line) => line.trim().toLowerCase())
+    .filter((line) => line.length > 0);
+}
+
+siteDenylistInput.addEventListener("change", () => {
+  updateSetting({ site_denylist: parseLines(siteDenylistInput.value) });
+});
+
+siteAllowlistInput.addEventListener("change", () => {
+  updateSetting({ site_allowlist: parseLines(siteAllowlistInput.value) });
 });
 
 // --- Disconnect ---

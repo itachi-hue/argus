@@ -100,6 +100,8 @@ export interface ArgusSettings {
   blocked_domains: string[];
   allowed_domains: string[];
   agent_actions: boolean; // enable agent browser actions
+  site_allowlist: string[]; // only capture from these sites (empty = all)
+  site_denylist: string[]; // never capture from these sites
 }
 
 export const DEFAULT_SETTINGS: ArgusSettings = {
@@ -116,4 +118,6 @@ export const DEFAULT_SETTINGS: ArgusSettings = {
   blocked_domains: [],
   allowed_domains: [],
   agent_actions: true,
+  site_allowlist: [],
+  site_denylist: [],
 };

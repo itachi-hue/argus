@@ -32,7 +32,46 @@ let settings: ArgusSettings = {
   blocked_domains: [],
   allowed_domains: [],
   agent_actions: true,
+  site_allowlist: [],
+  site_denylist: [],
 };
+
+/**
+ * Check if a URL is allowed by the site allowlist/denylist.
+ * - Denylist wins: if site is denied, it's blocked.
+ * - Allowlist next: if set, only those sites are captured.
+ * - Default: if both empty, everything is allowed.
+ */
+function isAllowedSite(url: string): boolean {
+  if (!url) return false;
+  try {
+    const hostname = new URL(url).hostname.toLowerCase();
+
+    // Denylist always wins
+    if (settings.site_denylist.length > 0) {
+      for (const denied of settings.site_denylist) {
+        const d = denied.toLowerCase().trim();
+        if (!d) continue;
+        if (hostname === d || hostname.endsWith("." + d)) return false;
+      }
+    }
+
+    // Allowlist: if set, only allow matching sites
+    if (settings.site_allowlist.length > 0) {
+      for (const allowed of settings.site_allowlist) {
+        const a = allowed.toLowerCase().trim();
+        if (!a) continue;
+        if (hostname === a || hostname.endsWith("." + a)) return true;
+      }
+      return false; // allowlist is set but no match
+    }
+
+    // Both empty: allow everything
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 async function loadSettings() {
   const stored = await chrome.storage.local.get("argus_settings");
@@ -110,6 +149,13 @@ function buildDescription(trigger: string, title: string, url: string): string {
 
 chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendResponse) => {
   if (msg.type === "events-batch" && msg.payload) {
+    // Check site filter — only ingest events from allowed sites
+    const senderUrl = sender.tab?.url || sender.url || "";
+    if (!isAllowedSite(senderUrl)) {
+      sendResponse({ ok: true });
+      return true;
+    }
+
     const { errors, console_events, network_events } = msg.payload;
     const body: any = {};
     if (errors?.length) body.errors = errors;
@@ -210,6 +256,7 @@ chrome.commands.onCommand.addListener(async (command) => {
 
   const tab = await getActiveTab();
   if (!tab?.id || !tab.url) return;
+  if (!isAllowedSite(tab.url)) return;
 
   const screenshotData = await captureScreenshot("hotkey");
 
@@ -262,6 +309,7 @@ async function autoCapture(trigger: string) {
   const tab = await getActiveTab();
   if (!tab?.id || !tab.url) return;
   if (tab.url.startsWith("chrome://") || tab.url.startsWith("chrome-extension://")) return;
+  if (!isAllowedSite(tab.url)) return;
 
   const screenshotData = await captureScreenshot(trigger);
   if (!screenshotData) return;
@@ -350,6 +398,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (info.menuItemId !== "argus-capture-element" || !tab?.id) return;
+  if (!isAllowedSite(tab.url || "")) return;
 
   try {
     const response = await chrome.tabs.sendMessage(tab.id, {
@@ -483,6 +532,10 @@ async function executeCommand(cmd: BrowserCommand): Promise<{ success: boolean; 
   const url = tab.url || "";
   if (url.startsWith("chrome://") || url.startsWith("chrome-extension://")) {
     return { success: false, error: "Cannot execute on chrome:// or extension pages" };
+  }
+
+  if (!isAllowedSite(url)) {
+    return { success: false, error: "This site is blocked by Argus site filters. Check extension settings." };
   }
 
   try {
