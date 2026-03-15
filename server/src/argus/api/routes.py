@@ -1,9 +1,13 @@
-"""HTTP route handlers for Chrome extension data ingestion."""
+"""HTTP + WebSocket route handlers for Chrome extension communication."""
 
-from fastapi import APIRouter
+import logging
+
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 from pydantic import BaseModel
 
 from argus.core.commands import CommandQueue
+
+logger = logging.getLogger(__name__)
 from argus.core.dedup import ErrorDeduplicator
 from argus.core.filters import NoiseFilter
 from argus.core.image import optimize_screenshot
@@ -39,6 +43,7 @@ def create_router(
     deduplicator: ErrorDeduplicator,
     sanitizer: Sanitizer,
     command_queue: CommandQueue,
+    auth_token: str = "",
 ) -> APIRouter:
     router = APIRouter(prefix="/api")
 
@@ -125,6 +130,38 @@ def create_router(
             },
         )
         return {"accepted": True}
+
+    # --- WebSocket for instant command delivery ---
+
+    @router.websocket("/ws/commands")
+    async def command_websocket(websocket: WebSocket, token: str = Query("")):
+        """WebSocket connection from the Chrome extension for instant command push/result."""
+        # Authenticate via query param (WebSockets can't use Authorization header)
+        if auth_token and token != auth_token:
+            await websocket.close(code=4001, reason="Unauthorized")
+            return
+
+        await websocket.accept()
+        command_queue.set_ws(websocket)
+        logger.info("Extension WebSocket connected")
+
+        try:
+            while True:
+                # Extension sends command results back over the same socket
+                data = await websocket.receive_json()
+                cmd_id = data.get("id")
+                if cmd_id:
+                    command_queue.set_result(cmd_id, {
+                        "success": data.get("success", False),
+                        "result": data.get("result"),
+                        "error": data.get("error"),
+                    })
+        except WebSocketDisconnect:
+            logger.info("Extension WebSocket disconnected")
+        except Exception as e:
+            logger.warning(f"WebSocket error: {e}")
+        finally:
+            command_queue.clear_ws()
 
     # --- Settings ---
 

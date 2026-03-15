@@ -197,7 +197,7 @@ def create_mcp_server(
         Args:
             selector: CSS selector for the element to click (e.g. 'button.submit', '#login-btn').
         """
-        cmd_id = command_queue.enqueue("click", {"selector": selector})
+        cmd_id = await command_queue.enqueue("click", {"selector": selector})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -210,7 +210,7 @@ def create_mcp_server(
             text: Text to type.
             clear_first: Whether to clear existing text before typing (default True).
         """
-        cmd_id = command_queue.enqueue("type", {"selector": selector, "text": text, "clear_first": clear_first})
+        cmd_id = await command_queue.enqueue("type", {"selector": selector, "text": text, "clear_first": clear_first})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -224,7 +224,7 @@ def create_mcp_server(
             y: Vertical scroll position in pixels (if no selector).
             direction: Quick scroll — 'top', 'bottom', 'up', 'down'. Overrides x/y.
         """
-        cmd_id = command_queue.enqueue("scroll", {"selector": selector, "x": x, "y": y, "direction": direction})
+        cmd_id = await command_queue.enqueue("scroll", {"selector": selector, "x": x, "y": y, "direction": direction})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -235,7 +235,7 @@ def create_mcp_server(
         Args:
             url: The URL to navigate to (e.g. 'https://example.com' or '/dashboard').
         """
-        cmd_id = command_queue.enqueue("navigate", {"url": url})
+        cmd_id = await command_queue.enqueue("navigate", {"url": url})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -246,7 +246,7 @@ def create_mcp_server(
         Args:
             selector: CSS selector for the element (e.g. 'h1', '.error-message', '#price').
         """
-        cmd_id = command_queue.enqueue("get_text", {"selector": selector})
+        cmd_id = await command_queue.enqueue("get_text", {"selector": selector})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -261,7 +261,7 @@ def create_mcp_server(
             code: JavaScript code to execute. The last expression is returned.
                   Example: 'document.title' or 'window.__NEXT_DATA__.props'
         """
-        cmd_id = command_queue.enqueue("run_js", {"code": code})
+        cmd_id = await command_queue.enqueue("run_js", {"code": code})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -274,7 +274,7 @@ def create_mcp_server(
             color: Outline color (default '#ff00ff' — magenta).
             duration_ms: How long the highlight stays visible in milliseconds (default 3000).
         """
-        cmd_id = command_queue.enqueue("highlight", {"selector": selector, "color": color, "duration_ms": duration_ms})
+        cmd_id = await command_queue.enqueue("highlight", {"selector": selector, "color": color, "duration_ms": duration_ms})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -287,7 +287,7 @@ def create_mcp_server(
             selector: CSS selector to wait for.
             timeout_ms: Maximum time to wait in milliseconds (default 5000).
         """
-        cmd_id = command_queue.enqueue("wait_for", {"selector": selector, "timeout_ms": timeout_ms})
+        cmd_id = await command_queue.enqueue("wait_for", {"selector": selector, "timeout_ms": timeout_ms})
         # Use longer server-side timeout to account for the browser-side wait
         result = await command_queue.wait_for_result(cmd_id, timeout=max(15.0, timeout_ms / 1000 + 5))
         return json.dumps(result)
@@ -309,7 +309,7 @@ def create_mcp_server(
             parsed = json.loads(fields)
         except json.JSONDecodeError as e:
             return json.dumps({"success": False, "error": f"Invalid JSON: {e}"})
-        cmd_id = command_queue.enqueue("fill_form", {"fields": parsed})
+        cmd_id = await command_queue.enqueue("fill_form", {"fields": parsed})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 
@@ -322,7 +322,7 @@ def create_mcp_server(
             width: Viewport width in pixels (e.g. 375 for iPhone, 768 for tablet, 1920 for desktop).
             height: Viewport height in pixels (e.g. 812 for iPhone, 1024 for tablet, 1080 for desktop).
         """
-        cmd_id = command_queue.enqueue("capture_viewport", {"width": width, "height": height})
+        cmd_id = await command_queue.enqueue("capture_viewport", {"width": width, "height": height})
         result = await command_queue.wait_for_result(cmd_id, timeout=20.0)
         if not result.get("success"):
             return [TextContent(type="text", text=json.dumps(result))]
@@ -349,7 +349,7 @@ def create_mcp_server(
         Returns: Navigation timing (TTFB, DOM load, full load), paint timing (FCP, LCP),
         layout shift (CLS), memory usage, and resource counts.
         """
-        cmd_id = command_queue.enqueue("get_perf", {})
+        cmd_id = await command_queue.enqueue("get_perf", {})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 
@@ -360,7 +360,7 @@ def create_mcp_server(
         Args:
             storage_type: 'local', 'session', or 'all' (default 'all').
         """
-        cmd_id = command_queue.enqueue("get_storage", {"type": storage_type})
+        cmd_id = await command_queue.enqueue("get_storage", {"type": storage_type})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 
@@ -370,7 +370,7 @@ def create_mcp_server(
 
         Returns cookie names, values (first 50 chars), domains, paths, and flags.
         """
-        cmd_id = command_queue.enqueue("get_cookies", {})
+        cmd_id = await command_queue.enqueue("get_cookies", {})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 
@@ -473,7 +473,7 @@ def create_mcp_server(
         Returns detected frameworks with versions: React, Vue, Svelte, Angular,
         Next.js, Nuxt, jQuery, and more.
         """
-        cmd_id = command_queue.enqueue("detect_framework", {})
+        cmd_id = await command_queue.enqueue("detect_framework", {})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 
@@ -491,7 +491,7 @@ def create_mcp_server(
             selector: CSS selector for the DOM element (e.g. '.user-card', '#modal', 'button.submit').
                       The tool finds the nearest framework component that owns this element.
         """
-        cmd_id = command_queue.enqueue("inspect_component", {"selector": selector})
+        cmd_id = await command_queue.enqueue("inspect_component", {"selector": selector})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 
@@ -519,7 +519,7 @@ def create_mcp_server(
 
         # Navigate first if URL provided
         if url:
-            nav_id = command_queue.enqueue("navigate", {"url": url})
+            nav_id = await command_queue.enqueue("navigate", {"url": url})
             await command_queue.wait_for_result(nav_id, timeout=10.0)
             # Wait for page to settle
             import asyncio
@@ -528,7 +528,7 @@ def create_mcp_server(
 
         captures = []
         for bp in breakpoints:
-            cmd_id = command_queue.enqueue("capture_viewport", {"width": bp["width"], "height": bp["height"]})
+            cmd_id = await command_queue.enqueue("capture_viewport", {"width": bp["width"], "height": bp["height"]})
             result = await command_queue.wait_for_result(cmd_id, timeout=20.0)
             captures.append((bp, result))
 
@@ -590,7 +590,7 @@ def create_mcp_server(
         Args:
             selector: CSS selector to scope the audit (default: entire page).
         """
-        cmd_id = command_queue.enqueue("a11y_audit", {"selector": selector})
+        cmd_id = await command_queue.enqueue("a11y_audit", {"selector": selector})
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result, indent=2)
 

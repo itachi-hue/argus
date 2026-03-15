@@ -151,12 +151,12 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendRes
       syncMaxScreenshots();
     }
 
-    // Start/stop command polling if agent_actions changed
+    // Start/stop WebSocket connection if agent_actions changed
     if (settings.agent_actions !== prevAgentActions) {
       if (settings.agent_actions) {
-        startCommandPolling();
+        connectCommandWebSocket();
       } else {
-        stopCommandPolling();
+        disconnectCommandWebSocket();
       }
     }
 
@@ -390,54 +390,86 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 
 // ═══════════════════════════════════════════════════════════
-// AGENT BROWSER ACTIONS — command polling + execution
+// AGENT BROWSER ACTIONS — WebSocket connection to server
+// Commands arrive instantly over the WebSocket, results are
+// sent back over the same connection. No polling needed.
+// The WebSocket also keeps the service worker alive.
 // ═══════════════════════════════════════════════════════════
 
-let commandPollInterval: ReturnType<typeof setInterval> | null = null;
-const COMMAND_POLL_MS = 800; // poll every 800ms for responsiveness
+let commandWs: WebSocket | null = null;
+let wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
+const WS_RECONNECT_MS = 2000;
 
-function startCommandPolling() {
-  if (commandPollInterval) return;
-  commandPollInterval = setInterval(pollAndExecuteCommands, COMMAND_POLL_MS);
-}
-
-function stopCommandPolling() {
-  if (commandPollInterval) {
-    clearInterval(commandPollInterval);
-    commandPollInterval = null;
-  }
-}
-
-async function pollAndExecuteCommands() {
+function connectCommandWebSocket() {
   if (!settings.auth_token || !settings.agent_actions) return;
+  if (commandWs && commandWs.readyState === WebSocket.OPEN) return;
 
-  try {
-    const res = await fetch(`${settings.server_url}/api/commands/pending`, {
-      headers: { Authorization: `Bearer ${settings.auth_token}` },
-    });
-    if (!res.ok) return;
+  // Clean up any existing connection
+  if (commandWs) {
+    try { commandWs.close(); } catch { /* ignore */ }
+    commandWs = null;
+  }
 
-    const commands: BrowserCommand[] = await res.json();
-    for (const cmd of commands) {
-      const result = await executeCommand(cmd);
-      // Report result back to server
-      await fetch(`${settings.server_url}/api/commands/${cmd.id}/result`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${settings.auth_token}`,
-        },
-        body: JSON.stringify(result),
-      }).catch(() => {});
+  const wsUrl = settings.server_url.replace(/^http/, "ws") + `/api/ws/commands?token=${settings.auth_token}`;
+  commandWs = new WebSocket(wsUrl);
+
+  commandWs.onopen = () => {
+    console.log("[Argus] WebSocket connected to server");
+    // Clear any pending reconnect
+    if (wsReconnectTimer) {
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = null;
     }
-  } catch {
-    /* server unreachable — skip this cycle */
+  };
+
+  commandWs.onmessage = async (event) => {
+    try {
+      const cmd: BrowserCommand = JSON.parse(event.data);
+      const result = await executeCommand(cmd);
+      // Send result back over the same WebSocket
+      if (commandWs && commandWs.readyState === WebSocket.OPEN) {
+        commandWs.send(JSON.stringify({ id: cmd.id, ...result }));
+      }
+    } catch (e) {
+      console.error("[Argus] Command execution error:", e);
+    }
+  };
+
+  commandWs.onclose = () => {
+    console.log("[Argus] WebSocket disconnected, reconnecting...");
+    commandWs = null;
+    scheduleReconnect();
+  };
+
+  commandWs.onerror = () => {
+    // onclose will fire after this, which handles reconnection
+    try { commandWs?.close(); } catch { /* ignore */ }
+  };
+}
+
+function disconnectCommandWebSocket() {
+  if (wsReconnectTimer) {
+    clearTimeout(wsReconnectTimer);
+    wsReconnectTimer = null;
+  }
+  if (commandWs) {
+    try { commandWs.close(); } catch { /* ignore */ }
+    commandWs = null;
   }
 }
 
-// Start polling on load if settings allow
+function scheduleReconnect() {
+  if (wsReconnectTimer) return; // already scheduled
+  if (!settings.auth_token || !settings.agent_actions) return;
+  wsReconnectTimer = setTimeout(() => {
+    wsReconnectTimer = null;
+    connectCommandWebSocket();
+  }, WS_RECONNECT_MS);
+}
+
+// Connect on load if settings allow
 loadSettings().then(() => {
-  if (settings.agent_actions) startCommandPolling();
+  if (settings.agent_actions) connectCommandWebSocket();
 });
 
 // ═══════════════════════════════════════════════════════════
@@ -1347,3 +1379,4 @@ async function execCaptureViewport(
     return { success: false, error: e.message };
   }
 }
+

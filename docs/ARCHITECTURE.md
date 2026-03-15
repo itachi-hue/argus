@@ -63,20 +63,22 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 │  └─────────────┘                                 │          │
 └──────────────────────────────────────────────────┼──────────┘
                                                    │
-                              HTTP POST to 127.0.0.1:PORT
-                              Authorization: Bearer <token>
+                              HTTP POST (data ingestion)
+                              WebSocket  (commands — bidirectional)
+                              to 127.0.0.1:PORT
+                              Auth: Bearer token / WS query param
                                                    │
                                                    ▼
 ┌─────────────────────────────────────────────────────────────┐
 │                  MCP SERVER (Python)                         │
 │                                                             │
 │  ┌──────────────┐         ┌───────────────────────┐        │
-│  │  HTTP Server │         │  MCP Server (stdio)    │        │
-│  │  (FastAPI)   │         │                        │        │
-│  │              │         │  Tools:                │        │
-│  │  /ingest/*   │────────►│  31 MCP Tools:         │        │
-│  │  /health     │  write  │  - 10 observation      │        │
-│  │  /commands/* │         │  - 8 browser actions   │        │
+│  │  HTTP +      │         │  MCP Server (stdio)    │        │
+│  │  WebSocket   │         │                        │        │
+│  │  (FastAPI)   │         │  Tools:                │        │
+│  │              │         │  31 MCP Tools:         │        │
+│  │  /ingest/*   │────────►│  - 10 observation      │        │
+│  │  /ws/commands│  write  │  - 8 browser actions   │        │
 │  └──────────────┘         │  - 2 framework inspect │        │
 │                           │  - 4 visual regression │        │
 │                           │  - 7 advanced          │        │
@@ -131,7 +133,7 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 |--------|---------|-------------|
 | `injected.ts` | Page (same as web app) | Monkey-patches `fetch`, `XMLHttpRequest`, `console.*`. Listens for `window.onerror`, `unhandledrejection`. Posts events via `window.postMessage`. |
 | `content/index.ts` | Isolated content script | Receives events from injected script. Extracts element details for right-click captures. Sends click events for auto-capture. Forwards to Service Worker. |
-| `background/index.ts` | Service Worker (MV3) | Buffers events, handles hotkey, captures screenshots, manages context menu, periodic alarm, auto-capture logic, command polling + execution. Sends to server via HTTP. |
+| `background/index.ts` | Service Worker (MV3) | Buffers events, handles hotkey, captures screenshots, manages context menu, periodic alarm, auto-capture logic, WebSocket command connection + execution. Sends data to server via HTTP, receives commands via WebSocket. |
 | `popup/popup.ts` | Extension popup | Settings UI — server pairing, capture toggles, interval/count config, connection status. |
 
 **Capture triggers:**
@@ -152,7 +154,7 @@ All auto-captures are throttled to max once per 10 seconds to prevent spamming.
 
 **Single process, two interfaces:**
 
-1. **HTTP Server** (FastAPI) — receives data from the Chrome extension. Binds to `127.0.0.1`. Token-authenticated.
+1. **HTTP + WebSocket Server** (FastAPI) — receives data from the Chrome extension via HTTP, handles bidirectional command communication via WebSocket (`/api/ws/commands`). Binds to `127.0.0.1`. Token-authenticated.
 2. **MCP Server** (stdio) — exposes tools to AI agents. Cursor/Claude Code spawns this process and communicates via stdin/stdout.
 
 Both run on the same asyncio event loop.
@@ -234,19 +236,20 @@ User right-clicks element → "Capture for AI Agent"
 → agent calls get_selected_element() → sees element details + screenshot
 ```
 
-### 5.5 Agent Browser Action (Command Queue)
+### 5.5 Agent Browser Action (WebSocket Command Channel)
 
 ```
 Agent calls click_element("#submit-btn")
-→ MCP tool enqueues command {id, action: "click", params: {selector}} in CommandQueue
-→ MCP tool awaits result (polls every 250ms, 15s timeout)
-→ Extension polls GET /api/commands/pending every 800ms
-→ Extension picks up command, executes via chrome.scripting.executeScript
+→ MCP tool calls CommandQueue.enqueue() — pushes command over WebSocket instantly
+→ MCP tool awaits asyncio.Future (resolved when result arrives, 15s timeout)
+→ Extension receives command on WebSocket, executes via chrome.scripting.executeScript
 → Page function clicks element, returns {success: true, result: {...}}
-→ Extension POSTs result to /api/commands/{id}/result
-→ CommandQueue stores result
-→ MCP tool picks up result, returns to agent
+→ Extension sends result back over the same WebSocket
+→ Server's WebSocket handler calls set_result() — resolves the Future
+→ MCP tool returns result to agent
 ```
+
+The WebSocket connection (`/api/ws/commands`) is established by the extension on startup and auto-reconnects on disconnect. This replaces the previous HTTP polling approach, providing instant command delivery (~10ms vs ~400ms average) and zero idle overhead. The WebSocket also keeps the MV3 service worker alive, eliminating the need for keep-alive port hacks.
 
 **Supported actions:**
 
@@ -355,6 +358,7 @@ All buffers are bounded `deque`s — oldest items are evicted when full. Thread-
 ### Authentication
 - Cryptographically random token generated on startup (`secrets.token_urlsafe(32)`)
 - Every HTTP request requires `Authorization: Bearer <token>`
+- WebSocket connections authenticated via query parameter (`?token=<token>`)
 - Constant-time comparison via `hmac.compare_digest`
 
 ### Network

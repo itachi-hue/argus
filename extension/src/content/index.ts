@@ -174,6 +174,10 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, _sender, sendRe
   return false;
 });
 
+// Note: The service worker is kept alive by the WebSocket connection
+// to the Argus server (established in background/index.ts).
+// No keep-alive port needed.
+
 
 
 

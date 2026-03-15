@@ -22,6 +22,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path in self.PUBLIC_PATHS:
             return await call_next(request)
 
+        # WebSocket auth is handled via query param in the endpoint itself
+        if request.url.path.startswith("/api/ws/"):
+            return await call_next(request)
+
         auth = request.headers.get("authorization", "")
         if not auth.startswith("Bearer "):
             return JSONResponse(status_code=401, content={"detail": "Missing authorization header"})
@@ -43,6 +47,9 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     RATE_EXEMPT: ClassVar[set[str]] = {"/api/health", "/api/commands/pending"}
 
     async def dispatch(self, request: Request, call_next):
+        # WebSocket connections are long-lived, skip rate limiting
+        if request.url.path.startswith("/api/ws/"):
+            return await call_next(request)
         if request.url.path in self.RATE_EXEMPT:
             return await call_next(request)
 
@@ -63,6 +70,9 @@ class PayloadSizeMiddleware(BaseHTTPMiddleware):
         self.max_size = max_size
 
     async def dispatch(self, request: Request, call_next):
+        # WebSocket upgrades don't have content-length
+        if request.url.path.startswith("/api/ws/"):
+            return await call_next(request)
         content_length = request.headers.get("content-length")
         if content_length and int(content_length) > self.max_size:
             return JSONResponse(status_code=413, content={"detail": "Payload too large"})

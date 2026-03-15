@@ -46,7 +46,7 @@ def create_app(
         command_queue = CommandQueue()
 
     # Routes
-    router = create_router(store, noise_filter, deduplicator, sanitizer, command_queue)
+    router = create_router(store, noise_filter, deduplicator, sanitizer, command_queue, auth_token=config.auth_token)
     app.include_router(router)
 
     # Pairing routes (no auth required)
