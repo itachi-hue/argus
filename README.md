@@ -192,10 +192,12 @@ npm run build
 2. Enable **Developer mode**
 3. Click **Load unpacked** → select the `extension/` folder
 
-### 4. Pair Extension to Server
+### 4. Connect Extension to Server
 
-1. Open **http://127.0.0.1:42777/api/pair** in your browser → click **Copy Token**
-2. Click the Argus extension icon → **Paste Token & Connect**
+1. Click the Argus extension icon in Chrome
+2. Click **Connect** — that's it
+
+The extension auto-detects the running server and connects instantly. If auto-connect isn't available (e.g. another extension already claimed it), use **Manual setup** in the popup to paste a token from **http://127.0.0.1:42777/api/pair**.
 
 ### 5. Use It
 
@@ -210,8 +212,11 @@ Open your web app in Chrome and talk to your agent:
 
 - All data stays on your machine — server binds to `127.0.0.1` only
 - Auth token required on every request (constant-time comparison)
+- Auto-connect is first-come-first-served — locks after the first extension connects
+- WebSocket authenticated via token on handshake
 - `Authorization`, `Cookie`, `Set-Cookie` headers automatically redacted
 - Request/response bodies truncated · in-memory only · rate limited
+- **Site filtering** — configurable allowlist / denylist in extension settings to control which sites Argus can observe
 
 <details>
 <summary><strong>Configuration</strong></summary>
