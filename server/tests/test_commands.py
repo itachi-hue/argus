@@ -44,11 +44,12 @@ class TestCommandQueue:
             q.get_pending()  # extension claims the command
             q.set_result(cmd_id, {"success": True, "result": {"clicked": "#btn"}})
 
-        asyncio.create_task(simulate_extension())
+        task = asyncio.create_task(simulate_extension())
 
         # wait_for_result sees cmd_id in _pending (not yet claimed), creates future
         result = await q.wait_for_result(cmd_id, timeout=2.0)
         assert result["success"] is True
+        await task
 
     @pytest.mark.asyncio
     async def test_wait_for_result_timeout(self):
