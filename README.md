@@ -332,6 +332,7 @@ Open your web app in Chrome and talk to your agent:
 
 ## Roadmap
 
+**Near-term:**
 - [ ] **Chrome Web Store** — One-click install
 - [ ] **Firefox extension** — Cross-browser support
 - [ ] **Safari extension** — Full browser coverage
@@ -339,7 +340,12 @@ Open your web app in Chrome and talk to your agent:
 - [ ] **CI/CD integration** — Run natural language tests in GitHub Actions
 - [ ] **Team features** — Share baselines, test results, dashboards
 - [ ] **More frameworks** — Better support for Svelte, Solid, Qwik
-- [ ] **Mobile testing** — Connect to mobile browsers/devices
+
+**Future directions:**
+- [ ] **Desktop apps** — Support Electron and native desktop applications
+- [ ] **Mobile app observability** — Monitor iOS and Android apps
+- [ ] **Terminal / CLI monitoring** — Observe command-line tools and scripts
+- [ ] **Self-healing workflows** — Automatically detect and fix issues across platforms
 
 Have ideas? [Open an issue](https://github.com/itachi-hue/argus/issues)!
 
