@@ -216,6 +216,28 @@ chrome.runtime.onMessage.addListener((msg: ArgusInternalMessage, sender, sendRes
     return true;
   }
 
+  if (msg.type === "auto-connect") {
+    const serverUrl = msg.payload?.server_url || settings.server_url;
+    fetch(`${serverUrl}/api/auto-connect`, { method: "POST" })
+      .then(async (r) => {
+        const data = await r.json();
+        if (r.ok && data.token) {
+          settings = { ...settings, server_url: serverUrl, auth_token: data.token };
+          chrome.storage.local.set({ argus_settings: settings });
+          connectCommandWebSocket();
+          sendResponse({ ok: true });
+        } else if (r.status === 403) {
+          sendResponse({ ok: false, error: "already_claimed", pair_url: data.pair_url });
+        } else {
+          sendResponse({ ok: false, error: "unknown", message: data.error || "Connection failed" });
+        }
+      })
+      .catch(() => {
+        sendResponse({ ok: false, error: "server_unreachable" });
+      });
+    return true;
+  }
+
   if (msg.type === "pair-request") {
     fetch(`${settings.server_url}/api/pair`, { method: "POST" })
       .then((r) => r.json())

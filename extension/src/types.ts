@@ -74,6 +74,7 @@ export interface ArgusInternalMessage {
     | "user-interaction"
     | "get-status"
     | "update-settings"
+    | "auto-connect"
     | "pair-request"
     | "pair-confirm";
   payload?: any;

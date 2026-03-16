@@ -7,6 +7,10 @@ const connectSection = document.getElementById("connect-section") as HTMLDivElem
 const connectedSection = document.getElementById("connected-section") as HTMLDivElement;
 
 // Connect flow
+const connectBtn = document.getElementById("connect-btn") as HTMLButtonElement;
+const connectError = document.getElementById("connect-error") as HTMLDivElement;
+const connectErrorMsg = document.getElementById("connect-error-msg") as HTMLParagraphElement;
+const connectErrorLink = document.getElementById("connect-error-link") as HTMLAnchorElement;
 const pairBtn = document.getElementById("pair-btn") as HTMLButtonElement;
 const codeSection = document.getElementById("code-section") as HTMLDivElement;
 const pairCodeInput = document.getElementById("pair-code") as HTMLInputElement;
@@ -106,7 +110,63 @@ async function checkConnection() {
   }
 }
 
-// --- One-click pairing flow ---
+// --- Helper: show connect error ---
+function showConnectError(message: string, linkText?: string, linkUrl?: string) {
+  connectErrorMsg.textContent = message;
+  connectError.classList.remove("hidden");
+  if (linkText && linkUrl) {
+    connectErrorLink.textContent = linkText;
+    connectErrorLink.href = linkUrl;
+    connectErrorLink.classList.remove("hidden");
+  } else {
+    connectErrorLink.classList.add("hidden");
+  }
+}
+
+function hideConnectError() {
+  connectError.classList.add("hidden");
+  connectErrorLink.classList.add("hidden");
+}
+
+// --- One-click auto-connect ---
+connectBtn.addEventListener("click", async () => {
+  connectBtn.disabled = true;
+  connectBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10" opacity="0.3"/><path d="M12 6v6l4 2"/></svg> Connecting…`;
+  hideConnectError();
+  setStatus("pairing", "Connecting…");
+
+  const serverUrl = serverUrlInput.value.replace(/\/$/, "") || "http://127.0.0.1:42777";
+
+  const response = await chrome.runtime.sendMessage({
+    type: "auto-connect",
+    payload: { server_url: serverUrl },
+  } as ArgusInternalMessage);
+
+  if (response?.ok) {
+    showConnected();
+    await loadSettings();
+  } else if (response?.error === "server_unreachable") {
+    showConnectError(
+      "Can't reach server. Run argus in your terminal first.",
+    );
+    hideStatus();
+  } else if (response?.error === "already_claimed") {
+    showConnectError(
+      "Another extension already connected. Use the token page instead.",
+      "Open token page →",
+      `${serverUrl}/api/pair`,
+    );
+    hideStatus();
+  } else {
+    showConnectError(response?.message || "Connection failed. Try manual setup below.");
+    hideStatus();
+  }
+
+  connectBtn.disabled = false;
+  connectBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg> Connect`;
+});
+
+// --- 4-digit code pairing flow ---
 pairBtn.addEventListener("click", async () => {
   pairBtn.disabled = true;
   pairBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg> Requesting code...`;
@@ -129,7 +189,7 @@ pairBtn.addEventListener("click", async () => {
   }
 
   pairBtn.disabled = false;
-  pairBtn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Connect to Server`;
+  pairBtn.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg> Use 4-digit code`;
 });
 
 // Handle code input — auto-submit when 4 digits entered
@@ -284,6 +344,15 @@ siteAllowlistInput.addEventListener("change", () => {
 
 // --- Disconnect ---
 disconnectBtn.addEventListener("click", async () => {
+  // Reset auto-connect lock on the server so next Connect click works
+  const stored = await chrome.storage.local.get("argus_settings");
+  const s = stored.argus_settings || {};
+  const serverUrl = s.server_url || "http://127.0.0.1:42777";
+  fetch(`${serverUrl}/api/auto-connect/reset`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${s.auth_token}` },
+  }).catch(() => {});
+
   await chrome.runtime.sendMessage({
     type: "update-settings",
     payload: { auth_token: "" },

@@ -220,6 +220,7 @@ class PairingManager:
         self._ttl = ttl_seconds
         self._active_code: str | None = None
         self._code_created_at: float = 0
+        self._auto_connect_claimed: bool = False
 
     def generate_code(self) -> str:
         """Generate a new 4-digit pairing code."""
@@ -243,6 +244,27 @@ class PairingManager:
 def create_pairing_router(token: str) -> tuple[APIRouter, PairingManager]:
     router = APIRouter(prefix="/api")
     manager = PairingManager(token)
+
+    @router.post("/auto-connect")
+    async def auto_connect():
+        """One-click connect — returns the token. First connect wins, then locks."""
+        if manager._auto_connect_claimed:
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "error": "Already connected. Use the token page to reconnect.",
+                    "pair_url": "/api/pair",
+                },
+            )
+        manager._auto_connect_claimed = True
+        print("\n✅ Extension connected via auto-connect.", file=sys.stderr)
+        return {"token": manager._token}
+
+    @router.post("/auto-connect/reset")
+    async def auto_connect_reset():
+        """Reset the auto-connect lock (called by extension on disconnect)."""
+        manager._auto_connect_claimed = False
+        return {"ok": True}
 
     @router.get("/pair", response_class=HTMLResponse)
     async def pair_page():

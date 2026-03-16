@@ -579,7 +579,71 @@ kbd {
   color: #dc2626;
 }
 
-/* ===== SETUP STEPS ===== */
+/* ===== CONNECT SECTION ===== */
+.connect-hint {
+  font-size: 12px;
+  color: #6a6a80;
+  text-align: center;
+  line-height: 1.5;
+  margin-bottom: 4px;
+}
+
+.connect-hint code {
+  background: #f0f0f5;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'SF Mono', 'Cascadia Code', 'Consolas', monospace;
+  font-size: 11px;
+  color: #6366f1;
+  font-weight: 600;
+}
+
+.btn-connect {
+  padding: 14px 14px;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  margin-bottom: 2px;
+}
+
+.btn-connect:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.connect-error {
+  padding: 10px 12px;
+  background: rgba(239, 68, 68, 0.05);
+  border: 1px solid rgba(239, 68, 68, 0.12);
+  border-radius: 8px;
+  text-align: center;
+}
+
+.connect-error p {
+  font-size: 11.5px;
+  color: #dc2626;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 0;
+}
+
+.error-link {
+  display: inline-block;
+  margin-top: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  color: #6366f1;
+  text-decoration: none;
+  transition: color 0.15s;
+}
+.error-link:hover {
+  color: #4f46e5;
+  text-decoration: underline;
+}
+
+/* ===== SETUP STEPS (legacy) ===== */
 .setup-steps {
   background: white;
   border: 1px solid #e4e4ec;
