@@ -1,10 +1,21 @@
 """Command queue for agent-initiated browser actions.
 
+THREADING MODEL:
+  The MCP server runs on the MAIN thread (event loop A — stdio).
+  The HTTP/WebSocket server runs on a BACKGROUND thread (event loop B — uvicorn).
+
+  This means:
+    - wait_for_result() creates Futures on loop A (main thread)
+    - set_result() is called from loop B (HTTP thread)
+    - We MUST use loop.call_soon_threadsafe() to resolve Futures cross-thread,
+      otherwise the main event loop never wakes up and tools appear to hang.
+
 Flow (WebSocket):
   1. MCP tool calls enqueue() — pushes command over WebSocket instantly
   2. Extension receives it, executes via chrome.scripting.executeScript
   3. Extension sends result back over the same WebSocket
-  4. set_result() resolves the asyncio.Future — MCP tool returns immediately
+  4. set_result() uses call_soon_threadsafe() to resolve the Future on the MCP loop
+  5. MCP tool returns immediately
 
 Fallback (HTTP polling — kept for backwards compatibility):
   1. If no WebSocket is connected, commands are queued in _pending
@@ -50,10 +61,14 @@ class CommandQueue:
         # Fail any pending futures — extension is gone
         for cmd_id, future in list(self._futures.items()):
             if not future.done():
-                future.set_result({
-                    "success": False,
-                    "error": "Extension disconnected",
-                })
+                try:
+                    loop = future.get_loop()
+                    loop.call_soon_threadsafe(future.set_result, {
+                        "success": False,
+                        "error": "Extension disconnected",
+                    })
+                except RuntimeError:
+                    pass  # Loop already closed
         self._futures.clear()
 
     async def enqueue(self, action: str, params: dict) -> str:
@@ -76,13 +91,22 @@ class CommandQueue:
         return cmd_id
 
     def set_result(self, command_id: str, result: dict) -> bool:
-        """Store the result of a command (called from WebSocket or HTTP POST)."""
-        # If there's a Future waiting, resolve it directly
+        """Store the result of a command (called from WebSocket or HTTP POST).
+
+        IMPORTANT: This is called from the HTTP thread, but the Future lives on
+        the MCP thread's event loop. We use call_soon_threadsafe() to properly
+        wake up the MCP event loop and resolve the Future instantly.
+        """
         future = self._futures.pop(command_id, None)
         if future and not future.done():
-            future.set_result(result)
+            try:
+                loop = future.get_loop()
+                loop.call_soon_threadsafe(future.set_result, result)
+            except RuntimeError:
+                # Loop is closed — store as fallback
+                self._results[command_id] = result
             return True
-        # Fallback: store for spin-wait (shouldn't happen with WebSocket)
+        # Fallback: store for later pickup
         self._results[command_id] = result
         return True
 
@@ -95,7 +119,7 @@ class CommandQueue:
                 "error": "No browser connected. Is the Argus extension active on a web page?",
             }
 
-        # Create a Future for this command
+        # Create a Future on the CURRENT (MCP) event loop
         loop = asyncio.get_running_loop()
         future: asyncio.Future[dict] = loop.create_future()
         self._futures[command_id] = future
