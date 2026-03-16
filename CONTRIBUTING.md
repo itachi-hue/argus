@@ -79,7 +79,7 @@ Use the [Bug Report template](https://github.com/itachi-hue/argus/issues/new?tem
 
 ## Code of Conduct
 
-Be kind, respectful, and constructive. We're all here to build something useful together.
+Be kind, respectful, and constructive. We're all here to build something useful together. Feel free to use this for all of your dev projects to unlock developer productivity.
 
 ## License
 
