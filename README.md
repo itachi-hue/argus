@@ -47,14 +47,14 @@ Chrome extension + MCP server that gives AI coding agents (Cursor, Claude Code, 
 
 ## Features
 
-- 🔍 **31 MCP tools** — observe, act, inspect, test, measure
-- 🎯 **Natural language E2E testing** — write tests in plain English, no code
-- 🔌 **Works with any MCP client** — Cursor, Claude Code, Windsurf, Cline, etc.
-- 🛡️ **Secure by default** — all data stays local, auth tokens, site filtering
-- ⚡ **Zero config** — auto-connects, IDE starts server automatically
-- 🎨 **Visual regression** — pixel-perfect UI testing
-- ♿ **Accessibility audits** — catch a11y issues automatically
-- 🧩 **Framework-aware** — inspects React/Vue/Svelte/Angular components
+- **31 MCP tools** — observe, act, inspect, test, measure
+- **Natural language E2E testing** — write tests in plain English, no code
+- **Works with any MCP client** — Cursor, Claude Code, Windsurf, Cline, etc.
+- **Secure by default** — all data stays local, auth tokens, site filtering
+- **Zero config** — auto-connects, IDE starts server automatically
+- **Visual regression** — pixel-perfect UI testing
+- **Accessibility audits** — catch a11y issues automatically
+- **Framework-aware** — inspects React/Vue/Svelte/Angular components
 
 ## Natural Language E2E Testing
 
