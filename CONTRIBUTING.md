@@ -79,9 +79,9 @@ Use the [Bug Report template](https://github.com/itachi-hue/argus/issues/new?tem
 
 ## Code of Conduct
 
-Be kind, respectful, and constructive. We're all here to build something useful together. Feel free to use this for all of your dev projects to unlock developer productivity.
+Be kind, respectful, and constructive. We're all here to build something useful together.
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the same license as the project (Business Source License 1.1). See the [LICENSE](LICENSE) file for details.
+By contributing, you agree that your contributions will be licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
