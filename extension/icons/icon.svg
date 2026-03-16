@@ -1,6 +1,25 @@
 ﻿<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <rect width="128" height="128" rx="24" fill="#6366f1"/>
-  <circle cx="64" cy="56" r="28" fill="none" stroke="white" stroke-width="6"/>
-  <circle cx="64" cy="56" r="10" fill="white"/>
-  <rect x="44" y="90" width="40" height="8" rx="4" fill="white" opacity="0.7"/>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="128" y2="128" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6366f1"/>
+      <stop offset="1" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="28" fill="url(#bg)"/>
+  <!-- Radiating lines — cardinal (bolder) -->
+  <line x1="64" y1="10" x2="64" y2="28" stroke="white" stroke-width="5" opacity="0.5" stroke-linecap="round"/>
+  <line x1="64" y1="100" x2="64" y2="118" stroke="white" stroke-width="5" opacity="0.5" stroke-linecap="round"/>
+  <line x1="10" y1="64" x2="28" y2="64" stroke="white" stroke-width="5" opacity="0.5" stroke-linecap="round"/>
+  <line x1="100" y1="64" x2="118" y2="64" stroke="white" stroke-width="5" opacity="0.5" stroke-linecap="round"/>
+  <!-- Radiating lines — diagonal (subtler) -->
+  <line x1="23" y1="23" x2="35" y2="35" stroke="white" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <line x1="105" y1="23" x2="93" y2="35" stroke="white" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <line x1="23" y1="105" x2="35" y2="93" stroke="white" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <line x1="105" y1="105" x2="93" y2="93" stroke="white" stroke-width="4" opacity="0.35" stroke-linecap="round"/>
+  <!-- Eye shape -->
+  <path d="M24 64C24 64 40 40 64 40C88 40 104 64 104 64C104 64 88 88 64 88C40 88 24 64 24 64Z" stroke="white" stroke-width="5.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Iris -->
+  <circle cx="64" cy="64" r="14" fill="white" opacity="0.95"/>
+  <!-- Pupil -->
+  <circle cx="64" cy="64" r="6" fill="#6366f1"/>
 </svg>
