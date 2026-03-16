@@ -52,7 +52,12 @@ function flashSaved() {
 // --- State ---
 function setStatus(state: "connected" | "disconnected" | "pairing", text: string) {
   statusDiv.className = `status-badge ${state}`;
+  statusDiv.classList.remove("hidden");
   statusText.textContent = text;
+}
+
+function hideStatus() {
+  statusDiv.classList.add("hidden");
 }
 
 function showConnected() {
@@ -66,7 +71,7 @@ function showDisconnected() {
   connectedSection.classList.add("hidden");
   codeSection.classList.add("hidden");
   pairError.classList.add("hidden");
-  setStatus("disconnected", "Offline");
+  hideStatus(); // No badge when not connected — it's just the default state
 }
 
 // --- Load settings ---
@@ -120,7 +125,7 @@ pairBtn.addEventListener("click", async () => {
   } else {
     pairError.textContent = response?.error || "Cannot reach server. Is it running?";
     pairError.classList.remove("hidden");
-    setStatus("disconnected", "Offline");
+    hideStatus();
   }
 
   pairBtn.disabled = false;

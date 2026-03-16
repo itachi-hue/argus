@@ -9,18 +9,24 @@
     <!-- Header -->
     <div class="header">
       <div class="brand">
+        <!-- Logo: All-seeing eye with radiating lines — vision + reach -->
         <svg class="logo" width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <rect width="32" height="32" rx="8" fill="url(#logo-grad)"/>
-          <!-- Eye shape -->
-          <path d="M5 16C5 16 9.5 9 16 9C22.5 9 27 16 27 16C27 16 22.5 23 16 23C9.5 23 5 16 5 16Z" stroke="white" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
-          <!-- Iris -->
-          <circle cx="16" cy="16" r="4" fill="white" opacity="0.95"/>
-          <!-- Pupil -->
-          <circle cx="16" cy="16" r="1.8" fill="#6366f1"/>
-          <!-- Cursor pointer (the "hands") -->
-          <path d="M20.5 18.5L22 24L23.8 23L22 18.8H25L18.5 11.5V20.5L20.5 18.5Z" fill="white" opacity="0.9"/>
+          <rect width="32" height="32" rx="8" fill="url(#lg)"/>
+          <!-- Radiating lines — reach, agency, awareness -->
+          <line x1="16" y1="3" x2="16" y2="7" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="16" y1="25" x2="16" y2="29" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="3" y1="16" x2="7" y2="16" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="25" y1="16" x2="29" y2="16" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+          <line x1="6.2" y1="6.2" x2="8.8" y2="8.8" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+          <line x1="25.8" y1="6.2" x2="23.2" y2="8.8" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+          <line x1="6.2" y1="25.8" x2="8.8" y2="23.2" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+          <line x1="25.8" y1="25.8" x2="23.2" y2="23.2" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+          <!-- Eye — the all-seeing core -->
+          <path d="M6.5 16C6.5 16 10.5 10.5 16 10.5C21.5 10.5 25.5 16 25.5 16C25.5 16 21.5 21.5 16 21.5C10.5 21.5 6.5 16 6.5 16Z" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="16" cy="16" r="3.5" fill="white" opacity="0.95"/>
+          <circle cx="16" cy="16" r="1.5" fill="#6366f1"/>
           <defs>
-            <linearGradient id="logo-grad" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
+            <linearGradient id="lg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse">
               <stop stop-color="#6366f1"/>
               <stop offset="1" stop-color="#7c3aed"/>
             </linearGradient>
@@ -31,9 +37,9 @@
           <span class="tagline">Eyes & Hands for AI</span>
         </div>
       </div>
-      <div id="status" class="status-badge disconnected">
+      <div id="status" class="status-badge hidden">
         <span class="status-dot"></span>
-        <span id="status-text">Offline</span>
+        <span id="status-text"></span>
       </div>
     </div>
 
@@ -83,30 +89,18 @@
       <!-- Compact toggle list -->
       <div class="toggle-list">
 
-        <!-- Screenshots -->
+        <!-- Agent Actions -->
         <div class="toggle-row">
           <div class="toggle-info">
-            <div class="toggle-icon icon-purple">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+            <div class="toggle-icon icon-amber">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
             </div>
-            <span>Screenshots</span>
+            <span>Agent Actions</span>
           </div>
           <label class="switch">
-            <input type="checkbox" id="auto-capture" checked>
+            <input type="checkbox" id="agent-actions" checked>
             <span class="slider"></span>
           </label>
-        </div>
-        <div id="capture-settings" class="sub-settings">
-          <div class="sub-row">
-            <span>Every</span>
-            <input type="number" id="capture-interval" min="10" max="300" value="30" class="num-input">
-            <span class="unit">sec</span>
-          </div>
-          <div class="sub-row">
-            <span>Keep</span>
-            <input type="number" id="max-screenshots" min="3" max="50" value="15" class="num-input">
-            <span class="unit">shots</span>
-          </div>
         </div>
 
         <!-- Console -->
@@ -137,18 +131,30 @@
           </label>
         </div>
 
-        <!-- Agent Actions -->
-        <div class="toggle-row">
+        <!-- Screenshots (bottom, so sub-settings sit naturally below) -->
+        <div class="toggle-row no-border">
           <div class="toggle-info">
-            <div class="toggle-icon icon-amber">
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
+            <div class="toggle-icon icon-purple">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
             </div>
-            <span>Agent Actions</span>
+            <span>Auto Screenshots</span>
           </div>
           <label class="switch">
-            <input type="checkbox" id="agent-actions" checked>
+            <input type="checkbox" id="auto-capture" checked>
             <span class="slider"></span>
           </label>
+        </div>
+        <div id="capture-settings" class="sub-settings">
+          <div class="sub-row">
+            <span>Every</span>
+            <input type="number" id="capture-interval" min="10" max="300" value="30" class="num-input">
+            <span class="unit">sec</span>
+          </div>
+          <div class="sub-row">
+            <span>Keep</span>
+            <input type="number" id="max-screenshots" min="3" max="50" value="15" class="num-input">
+            <span class="unit">shots</span>
+          </div>
         </div>
 
       </div>
@@ -158,7 +164,7 @@
         <summary>
           <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Site Filters
-          <span class="filter-hint">Control which sites Argus can access</span>
+          <span class="filter-hint">Control access</span>
         </summary>
         <div class="filter-body">
           <div class="filter-field">
@@ -184,17 +190,15 @@
         Saved
       </div>
 
-      <!-- Footer -->
-      <div class="footer-row">
-        <div class="hotkey-badge">
-          <kbd>Ctrl+Shift+L</kbd>
-          <span>capture</span>
-        </div>
-        <button id="disconnect-btn" class="btn-disconnect">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Disconnect
-        </button>
+      <!-- Capture shortcut -->
+      <div class="capture-bar">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+        <kbd>Ctrl+Shift+L</kbd>
+        <span>instant capture</span>
       </div>
+
+      <!-- Disconnect -->
+      <button id="disconnect-btn" class="disconnect-link">Disconnect session</button>
 
     </div>
   </div>
