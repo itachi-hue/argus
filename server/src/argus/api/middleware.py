@@ -16,7 +16,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
         self.token = token
 
     # Paths that don't require auth
-    PUBLIC_PATHS: ClassVar[set[str]] = {"/api/health", "/api/pair", "/api/pair/confirm", "/api/auto-connect", "/api/auto-connect/reset"}
+    PUBLIC_PATHS: ClassVar[set[str]] = {
+        "/api/health",
+        "/api/pair",
+        "/api/pair/confirm",
+        "/api/auto-connect",
+        "/api/auto-connect/reset",
+    }
 
     async def dispatch(self, request: Request, call_next):
         if request.url.path in self.PUBLIC_PATHS:

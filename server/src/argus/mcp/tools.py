@@ -274,7 +274,9 @@ def create_mcp_server(
             color: Outline color (default '#ff00ff' — magenta).
             duration_ms: How long the highlight stays visible in milliseconds (default 3000).
         """
-        cmd_id = await command_queue.enqueue("highlight", {"selector": selector, "color": color, "duration_ms": duration_ms})
+        cmd_id = await command_queue.enqueue(
+            "highlight", {"selector": selector, "color": color, "duration_ms": duration_ms}
+        )
         result = await command_queue.wait_for_result(cmd_id)
         return json.dumps(result)
 

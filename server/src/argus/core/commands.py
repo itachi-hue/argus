@@ -62,10 +62,13 @@ class CommandQueue:
             if not future.done():
                 try:
                     loop = future.get_loop()
-                    loop.call_soon_threadsafe(future.set_result, {
-                        "success": False,
-                        "error": "Extension disconnected",
-                    })
+                    loop.call_soon_threadsafe(
+                        future.set_result,
+                        {
+                            "success": False,
+                            "error": "Extension disconnected",
+                        },
+                    )
                 except RuntimeError:
                     pass  # Loop already closed
         self._futures.clear()
@@ -136,7 +139,7 @@ class CommandQueue:
             return {
                 "success": False,
                 "error": f"Timeout: browser did not respond within {timeout:.0f}s. "
-                         "Is the extension connected and on a web page?",
+                "Is the extension connected and on a web page?",
             }
 
     # --- HTTP polling fallback (kept for backwards compatibility) ---
@@ -159,7 +162,6 @@ class CommandQueue:
     def cleanup(self) -> None:
         """Remove stale results and futures."""
         now = time.time()
-        stale = [k for k, v in self._results.items()
-                 if isinstance(v, dict) and now - v.get("_ts", 0) > 60]
+        stale = [k for k, v in self._results.items() if isinstance(v, dict) and now - v.get("_ts", 0) > 60]
         for k in stale:
             del self._results[k]

@@ -151,11 +151,14 @@ def create_router(
                 data = await websocket.receive_json()
                 cmd_id = data.get("id")
                 if cmd_id:
-                    command_queue.set_result(cmd_id, {
-                        "success": data.get("success", False),
-                        "result": data.get("result"),
-                        "error": data.get("error"),
-                    })
+                    command_queue.set_result(
+                        cmd_id,
+                        {
+                            "success": data.get("success", False),
+                            "result": data.get("result"),
+                            "error": data.get("error"),
+                        },
+                    )
         except WebSocketDisconnect:
             logger.info("Extension WebSocket disconnected")
         except Exception as e:
