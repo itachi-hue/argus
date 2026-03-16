@@ -95,7 +95,7 @@ Your IDE automatically starts the Argus server — no terminal commands needed.
 | **Act** | Click · type · scroll · navigate · fill forms · run JS · highlight elements |
 | **Inspect** | React / Vue / Svelte / Angular component props, state, hooks, context |
 | **Test** | Visual regression (pixel-diff) · responsive audit (mobile / tablet / desktop) · accessibility |
-| **Runtime** | Web Vitals · localStorage · sessionStorage · cookies · accessibility |
+| **Runtime** | Web Vitals · localStorage · sessionStorage · cookies |
 
 <details>
 <summary><strong>Observation</strong> (10 tools)</summary>
@@ -339,7 +339,7 @@ Open your web app in Chrome and talk to your agent:
 - Terminal / CLI monitoring — Observe command-line tools and scripts
 - Self-healing workflows — Automatically detect and fix issues across platforms
 
-Have ideas? Open an issue!
+Have ideas? [Open an issue](https://github.com/itachi-hue/argus/issues)!
 
 ## Development
 
