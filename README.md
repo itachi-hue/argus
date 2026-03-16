@@ -18,11 +18,6 @@
 
 ---
 
-## 🎬 Demo
-
-<!-- TODO: Add demo GIF/video here -->
-*Coming soon: Watch Argus in action — debugging, testing, and interacting with your browser in real-time.*
-
 ## The Problem
 
 AI coding agents like Cursor and Claude Code are powerful. They can read your codebase, write functions, refactor entire modules. But they're **blind** — they can't see what's actually running in your browser.
@@ -300,11 +295,6 @@ Open your web app in Chrome and talk to your agent:
 - *"Take a screenshot and fix the layout"*
 - *"Click the login button and see what happens"*
 - *"Run an accessibility audit on the page"*
-
-## Screenshots & Visuals
-
-<!-- TODO: Add screenshots here -->
-*Coming soon: Screenshots of the extension popup, visual regression comparisons, component inspection, and more.*
 
 ## Security
 
