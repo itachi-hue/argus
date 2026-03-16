@@ -83,5 +83,5 @@ Be kind, respectful, and constructive. We're all here to build something useful 
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the same license as the project (Business Source License 1.1). See the [LICENSE](LICENSE) file for details.
 
