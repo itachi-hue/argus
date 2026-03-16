@@ -114,7 +114,7 @@ Works with **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** �
 ### 1. Clone & Install
 
 ```bash
-git clone https://github.com/user/argus.git
+git clone https://github.com/itachi-hue/argus.git
 cd argus
 
 # Server
@@ -157,8 +157,11 @@ Restart Cursor. Look for **argus** with a green dot under **Settings → MCP**.
 <summary><strong>Claude Code</strong></summary>
 
 ```bash
-claude mcp add argus -- python -m argus --cwd /absolute/path/to/argus/server
+cd /absolute/path/to/argus/server
+claude mcp add argus -- python -m argus
 ```
+
+> Replace `/absolute/path/to/argus/server` with the actual path.
 </details>
 
 <details>
