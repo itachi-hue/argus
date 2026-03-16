@@ -2,12 +2,10 @@
 
 import logging
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
+from fastapi import APIRouter, Query, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from argus.core.commands import CommandQueue
-
-logger = logging.getLogger(__name__)
 from argus.core.dedup import ErrorDeduplicator
 from argus.core.filters import NoiseFilter
 from argus.core.image import optimize_screenshot
@@ -20,6 +18,8 @@ from argus.core.models import (
 )
 from argus.security.sanitizer import Sanitizer
 from argus.store.base import ContextStore
+
+logger = logging.getLogger(__name__)
 
 
 class UpdateSettingsRequest(BaseModel):

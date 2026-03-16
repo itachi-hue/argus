@@ -27,7 +27,6 @@ import asyncio
 import logging
 import time
 import uuid
-from typing import Any
 
 from fastapi import WebSocket
 
@@ -59,7 +58,7 @@ class CommandQueue:
         self._ws = None
         logger.info("Extension WebSocket disconnected")
         # Fail any pending futures — extension is gone
-        for cmd_id, future in list(self._futures.items()):
+        for _cmd_id, future in list(self._futures.items()):
             if not future.done():
                 try:
                     loop = future.get_loop()
@@ -132,7 +131,7 @@ class CommandQueue:
 
         try:
             return await asyncio.wait_for(future, timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             self._futures.pop(command_id, None)
             return {
                 "success": False,
