@@ -118,6 +118,8 @@ pip install -e .
 
 ### 2. Connect to Your AI Agent
 
+Your IDE starts the Argus server automatically — no need to run anything in the terminal.
+
 <details>
 <summary><strong>Cursor</strong></summary>
 
@@ -194,10 +196,10 @@ npm run build
 
 ### 4. Connect Extension to Server
 
-1. Click the Argus extension icon in Chrome
-2. Click **Connect** — that's it
+1. Open any page in Chrome (e.g. your app at `localhost:3000`)
+2. Click the Argus extension icon → **Connect**
 
-The extension auto-detects the running server and connects instantly. If auto-connect isn't available (e.g. another extension already claimed it), use **Manual setup** in the popup to paste a token from **http://127.0.0.1:42777/api/pair**.
+That's it. The extension auto-detects the server and connects instantly. If auto-connect isn't available (e.g. another extension already claimed it), expand **Manual setup** in the popup to paste a token from **http://127.0.0.1:42777/api/pair**.
 
 ### 5. Use It
 
