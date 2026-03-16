@@ -134,7 +134,7 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 | `injected.ts` | Page (same as web app) | Monkey-patches `fetch`, `XMLHttpRequest`, `console.*`. Listens for `window.onerror`, `unhandledrejection`. Posts events via `window.postMessage`. |
 | `content/index.ts` | Isolated content script | Receives events from injected script. Extracts element details for right-click captures. Sends click events for auto-capture. Forwards to Service Worker. |
 | `background/index.ts` | Service Worker (MV3) | Buffers events, handles hotkey, captures screenshots, manages context menu, periodic alarm, auto-capture logic, WebSocket command connection + execution. Sends data to server via HTTP, receives commands via WebSocket. |
-| `popup/popup.ts` | Extension popup | Settings UI — server pairing, capture toggles, interval/count config, connection status. |
+| `popup/popup.ts` | Extension popup | Settings UI — one-click connect, capture toggles, site filters, connection status. |
 
 **Capture triggers:**
 
@@ -149,6 +149,30 @@ Works with any MCP-compatible client: Cursor, Claude Code, Claude Desktop, Winds
 | Right-click element | Element details + styles + screenshot | `chrome.contextMenus` → content script extraction |
 
 All auto-captures are throttled to max once per 10 seconds to prevent spamming.
+
+**Connection flow:**
+
+The extension connects to the MCP server via a one-click flow:
+
+```
+User clicks "Connect" in extension popup
+→ Extension POSTs to /api/auto-connect (no auth required)
+→ Server returns auth token (first-come-first-served, locks after first use)
+→ Extension stores token and opens WebSocket to /api/ws/commands
+→ Connected — all tools work immediately
+```
+
+If auto-connect is already claimed (e.g. by another extension instance), the user falls back to manual token entry from the pairing page (`/api/pair`). On disconnect, the auto-connect lock resets.
+
+**Site filtering:**
+
+The extension supports user-configurable domain filtering:
+
+- **Denylist** — never capture from these domains (e.g. `mail.google.com`, `bank.com`)
+- **Allowlist** — only capture from these domains (when set, everything else is blocked)
+- **Priority:** denylist wins → allowlist → default (capture everything)
+
+Filtering applies to all data capture (screenshots, console, network) and command execution. Configured in the extension popup settings.
 
 ### 4.2 MCP Server
 
@@ -360,6 +384,8 @@ All buffers are bounded `deque`s — oldest items are evicted when full. Thread-
 - Every HTTP request requires `Authorization: Bearer <token>`
 - WebSocket connections authenticated via query parameter (`?token=<token>`)
 - Constant-time comparison via `hmac.compare_digest`
+- **Auto-connect** (`POST /api/auto-connect`) — returns token once, then locks (403). Resets on disconnect. No auth required (localhost only, first-come-first-served)
+- **Pairing page** (`GET /api/pair`) — fallback for manual token copy when auto-connect is locked
 
 ### Network
 - HTTP server binds to `127.0.0.1` only — never exposed to network
@@ -426,11 +452,13 @@ favicon.ico, .hot-update., __webpack_hmr, sockjs-node,
 
 Errors are dropped if their stack trace only contains frames from browser extensions or third-party CDNs. Errors are kept if any frame references `localhost`, `127.0.0.1`, or the current page's origin.
 
-### User Configuration
+### User Configuration (Site Filtering)
 
-- **Domain allowlist** — always capture from these domains
-- **Domain blocklist additions** — also ignore these domains
-- Configured via extension popup, synced to server
+- **Domain denylist** — never capture from these domains (overrides everything)
+- **Domain allowlist** — when set, only capture from these domains
+- **Default** (both empty) — capture from all sites
+- **Priority:** denylist > allowlist > default
+- Configured via extension popup, applied client-side before any data is sent to the server
 
 ---
 
