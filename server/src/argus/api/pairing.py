@@ -28,87 +28,171 @@ _PAIR_PAGE_HTML = """<!DOCTYPE html>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: #0f1117;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0c0c14;
     color: #e4e4e7;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: 100vh;
+    padding: 20px;
   }
   .card {
-    background: #1a1b23;
-    border: 1px solid #2a2b35;
-    border-radius: 16px;
-    padding: 40px;
-    max-width: 440px;
-    width: 90%%;
+    background: #16171f;
+    border: 1px solid #25262f;
+    border-radius: 20px;
+    padding: 44px 40px;
+    max-width: 420px;
+    width: 100%%;
     text-align: center;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
   }
-  .logo { font-size: 36px; margin-bottom: 8px; }
-  h1 { font-size: 22px; font-weight: 600; margin-bottom: 6px; }
-  .subtitle { color: #9ca3af; font-size: 14px; margin-bottom: 32px; }
-  .label { font-size: 12px; color: #9ca3af; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+  .logo-wrap {
+    margin-bottom: 16px;
+  }
+  .logo-wrap svg {
+    filter: drop-shadow(0 4px 20px rgba(99, 102, 241, 0.3));
+  }
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 4px;
+    letter-spacing: -0.5px;
+  }
+  .tagline {
+    font-size: 12px;
+    font-weight: 600;
+    color: #818cf8;
+    letter-spacing: 0.3px;
+    margin-bottom: 32px;
+  }
+  .label {
+    font-size: 11px;
+    color: #6b7280;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
   .token-box {
-    background: #0f1117;
-    border: 1px solid #2a2b35;
+    background: #0c0c14;
+    border: 1px solid #25262f;
     border-radius: 10px;
     padding: 14px 16px;
-    font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
-    font-size: 13px;
+    font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+    font-size: 12px;
     color: #a78bfa;
     word-break: break-all;
-    line-height: 1.5;
+    line-height: 1.6;
     margin-bottom: 16px;
     user-select: all;
+    cursor: text;
+    transition: border-color 0.2s;
+  }
+  .token-box:hover {
+    border-color: #6366f1;
   }
   .copy-btn {
-    background: #6d5ace;
+    background: linear-gradient(135deg, #6366f1, #7c3aed);
     color: white;
     border: none;
-    border-radius: 10px;
-    padding: 12px 32px;
+    border-radius: 12px;
+    padding: 13px 32px;
     font-size: 15px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
-    transition: background 0.15s;
+    transition: all 0.2s;
     width: 100%%;
+    position: relative;
+    overflow: hidden;
   }
-  .copy-btn:hover { background: #7c6bd6; }
-  .copy-btn.copied { background: #22c55e; }
+  .copy-btn::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, transparent 40%%, rgba(255,255,255,0.1));
+    pointer-events: none;
+  }
+  .copy-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 24px rgba(99, 102, 241, 0.35);
+  }
+  .copy-btn:active { transform: translateY(0); }
+  .copy-btn.copied {
+    background: linear-gradient(135deg, #22c55e, #16a34a);
+  }
   .steps {
     margin-top: 28px;
     padding-top: 24px;
-    border-top: 1px solid #2a2b35;
+    border-top: 1px solid #1f2029;
+  }
+  .step {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 7px 0;
     text-align: left;
   }
-  .steps p {
+  .step-num {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%%;
+    background: rgba(99, 102, 241, 0.12);
+    color: #818cf8;
+    font-size: 12px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .step-text {
     font-size: 13px;
     color: #9ca3af;
-    margin-bottom: 8px;
-    padding-left: 24px;
-    position: relative;
   }
-  .steps p span.num {
-    position: absolute;
-    left: 0;
-    color: #6d5ace;
+  .step-text strong {
+    color: #e4e4e7;
     font-weight: 600;
   }
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="logo">👁️</div>
+  <div class="logo-wrap">
+    <svg width="52" height="52" viewBox="0 0 32 32" fill="none">
+      <rect width="32" height="32" rx="8" fill="url(#lg)"/>
+      <line x1="16" y1="3" x2="16" y2="7" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+      <line x1="16" y1="25" x2="16" y2="29" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+      <line x1="3" y1="16" x2="7" y2="16" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+      <line x1="25" y1="16" x2="29" y2="16" stroke="white" stroke-width="1.5" opacity="0.5" stroke-linecap="round"/>
+      <line x1="6.2" y1="6.2" x2="8.8" y2="8.8" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+      <line x1="25.8" y1="6.2" x2="23.2" y2="8.8" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+      <line x1="6.2" y1="25.8" x2="8.8" y2="23.2" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+      <line x1="25.8" y1="25.8" x2="23.2" y2="23.2" stroke="white" stroke-width="1.3" opacity="0.35" stroke-linecap="round"/>
+      <path d="M6.5 16C6.5 16 10.5 10.5 16 10.5C21.5 10.5 25.5 16 25.5 16C25.5 16 21.5 21.5 16 21.5C10.5 21.5 6.5 16 6.5 16Z" stroke="white" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="16" cy="16" r="3.5" fill="white" opacity="0.95"/>
+      <circle cx="16" cy="16" r="1.5" fill="#6366f1"/>
+      <defs><linearGradient id="lg" x1="0" y1="0" x2="32" y2="32" gradientUnits="userSpaceOnUse"><stop stop-color="#6366f1"/><stop offset="1" stop-color="#7c3aed"/></linearGradient></defs>
+    </svg>
+  </div>
   <h1>Argus</h1>
-  <p class="subtitle">Connect the Chrome extension to your MCP server</p>
-  <p class="label">Auth Token</p>
+  <p class="tagline">Eyes & Hands for AI</p>
+  <p class="label">Your Auth Token</p>
   <div class="token-box" id="token">%s</div>
   <button class="copy-btn" id="copy" onclick="copyToken()">Copy Token</button>
   <div class="steps">
-    <p><span class="num">1.</span> Click <strong>Copy Token</strong> above</p>
-    <p><span class="num">2.</span> Open the Argus extension popup in Chrome</p>
-    <p><span class="num">3.</span> Click <strong>Paste Token</strong> — done!</p>
+    <div class="step">
+      <span class="step-num">1</span>
+      <span class="step-text">Click <strong>Copy Token</strong> above</span>
+    </div>
+    <div class="step">
+      <span class="step-num">2</span>
+      <span class="step-text">Open the <strong>Argus extension</strong> in Chrome toolbar</span>
+    </div>
+    <div class="step">
+      <span class="step-num">3</span>
+      <span class="step-text">Click <strong>Paste Token & Connect</strong></span>
+    </div>
   </div>
 </div>
 <script>

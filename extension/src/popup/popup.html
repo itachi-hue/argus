@@ -45,7 +45,30 @@
 
     <!-- Connect Section -->
     <div id="connect-section">
-      <p class="hint">Connect to your Argus server to get started.</p>
+
+      <!-- Step-by-step instructions -->
+      <div class="setup-steps">
+        <div class="step">
+          <span class="step-num">1</span>
+          <div class="step-text">
+            <span>Start the Argus server</span>
+            <span class="step-detail"><code>argus</code> in your terminal</span>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">2</span>
+          <div class="step-text">
+            <span>Copy your token</span>
+            <a href="http://127.0.0.1:42777/api/pair" target="_blank" class="step-link">Open token page →</a>
+          </div>
+        </div>
+        <div class="step">
+          <span class="step-num">3</span>
+          <div class="step-text">
+            <span>Paste it here</span>
+          </div>
+        </div>
+      </div>
 
       <button id="paste-btn" class="btn-primary">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -59,7 +82,7 @@
 
         <button id="pair-btn" class="btn-ghost" style="margin-bottom: 8px; width: 100%;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          Use 4-digit code
+          Use 4-digit code from terminal
         </button>
 
         <div id="code-section" class="hidden">
