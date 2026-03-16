@@ -2,10 +2,11 @@
   <img src="extension/icons/icon-128.png" alt="Argus" width="80" />
 </p>
 
-<h1 align="center">Argus</h1>
+<h1 align="center">Argus — Eyes and Hands for AI Agents</h1>
 
 <p align="center">
-  <strong>Eyes and hands for AI agents.</strong>
+  <strong>AI agents can write code — but they can't see what's happening in the browser.</strong><br/>
+  Argus gives them <strong>eyes and hands</strong>: detect errors, inspect state, interact with pages, run tests, and fix issues autonomously.
 </p>
 
 <p align="center">
@@ -20,9 +21,14 @@
 
 ## The Problem
 
-AI coding agents like Cursor and Claude Code are powerful. They can read your codebase, write functions, refactor entire modules. But they're **blind** — they can't see what's actually running in your browser.
+AI coding agents generate code — but often **it doesn't work in the real app** because:
 
-When your app crashes with a `TypeError`, when a button doesn't work, when the layout breaks on mobile — your agent has no idea. You're stuck manually describing bugs, copying error messages, taking screenshots, and hoping the agent understands.
+- They can't see **console errors or network failures**
+- They can't inspect **framework state** (React props, Vue data, component hooks)
+- They can't **interact with the page** — no clicking, no form filling, no navigation
+- They can't **test visually** — layout breaks, accessibility issues, responsive bugs go unnoticed
+
+You're stuck manually describing bugs, copying error messages, and taking screenshots. The feedback loop is slow and lossy.
 
 ## The Solution
 
@@ -32,13 +38,9 @@ Your agent can now:
 - **See** console errors, network failures, screenshots, component state
 - **Act** by clicking buttons, filling forms, navigating pages, running JavaScript
 - **Test** with visual regression, responsive audits, accessibility checks
-- **Debug** by inspecting React/Vue components, mapping errors to source code
+- **Debug** by inspecting React/Vue/Svelte/Angular components, mapping errors to source code
 
 All through [MCP](https://modelcontextprotocol.io/) — no custom APIs, no complex setup. Just install the extension, connect, and start talking to your agent.
-
-## TL;DR
-
-Chrome extension + MCP server that gives AI coding agents (Cursor, Claude Code, etc.) full browser visibility and control. See errors, take screenshots, click buttons, fill forms, test accessibility — all through natural language.
 
 ## Features
 
