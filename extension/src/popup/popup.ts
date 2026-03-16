@@ -147,7 +147,7 @@ connectBtn.addEventListener("click", async () => {
     await loadSettings();
   } else if (response?.error === "server_unreachable") {
     showConnectError(
-      "Can't reach server. Run argus in your terminal first.",
+      "Can't reach server. Make sure your IDE or agent has started the Argus server.",
     );
     hideStatus();
   } else if (response?.error === "already_claimed") {
