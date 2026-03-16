@@ -226,44 +226,22 @@ Open your web app in Chrome and talk to your agent:
 
 ## Natural Language E2E Testing
 
-Write tests in plain English — the AI agent reads them and executes them using Argus tools. No test framework, no selectors to maintain, no flaky waits. Just describe what should happen.
-
-Create a `tests/e2e.md` (or any file) in your repo:
+Write tests in plain English in a markdown file — no framework, no selectors, no test code:
 
 ```markdown
-## Test 1: Login flow works
+## Test: Login flow
 1. Go to http://localhost:3000/login
 2. Type "admin@test.com" in the email field
-3. Type "password123" in the password field
-4. Click the Sign In button
-5. Wait for the dashboard to load
-6. Verify the heading says "Welcome back, Admin"
-7. Make sure there are no console errors
-
-## Test 2: Responsive layout
-1. Check the page at mobile (375px), tablet (768px), and desktop (1440px)
-2. Navigation should collapse to a hamburger on mobile
-3. No horizontal overflow on any breakpoint
-
-## Test 3: Accessibility
-1. Run an accessibility audit on the full page
-2. All images should have alt text
-3. All form inputs should have labels
-4. There should be zero critical violations
+3. Click Sign In
+4. Verify the heading says "Welcome back, Admin"
+5. Make sure there are no console errors
 ```
 
-Then tell your agent:
+Then tell your agent: *"Read `tests/e2e.md` and run all the tests."*
 
-> *"Read `tests/e2e.md` and run all the tests"*
+The agent executes each step using Argus tools — clicking, typing, navigating, screenshotting, checking errors — and reports results. No Playwright, no Selenium, no brittle selectors. Anyone on your team can write tests.
 
-The agent reads each test, executes the steps using Argus tools (clicking, typing, navigating, taking screenshots, checking console errors), and reports results — all without writing a single line of test code.
-
-**Why this works:**
-- **No selectors to maintain** — the LLM finds elements by intent, not brittle CSS selectors
-- **No test framework** — no Playwright, Cypress, or Selenium to install and configure
-- **Self-healing** — if a button label changes from "Submit" to "Save", the agent adapts
-- **Full-stack verification** — the agent can check the browser *and* read server logs / source code in the same run
-- **Anyone can write tests** — PMs, designers, and QA can contribute test cases in plain English
+See [argus-demo](https://github.com/itachi-hue/argus-demo) for a full 18-test example covering search, cart, checkout, visual regression, responsive layout, and accessibility.
 
 ## Security
 
