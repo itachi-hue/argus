@@ -21,14 +21,19 @@
 
 ## The Problem
 
-AI coding agents generate code — but often **it doesn't work in the real app** because:
+You know this loop:
 
-- They can't see **console errors or network failures**
-- They can't inspect **framework state** (React props, Vue data, component hooks)
-- They can't **interact with the page** — no clicking, no form filling, no navigation
-- They can't **test visually** — layout breaks, accessibility issues, responsive bugs go unnoticed
+> **You:** "Fix the login page"
+> **Agent:** *changes 3 files*
+> **You:** *refreshes browser* — white screen, console full of errors
+> **You:** *copies error, pastes it back* — "It's showing TypeError on line 42"
+> **Agent:** *tries again*
+> **You:** *refreshes* — button renders but doesn't work
+> **You:** *opens DevTools, copies the network error, screenshots the layout, describes what's wrong in words...*
 
-You're stuck manually describing bugs, copying error messages, and taking screenshots. The feedback loop is slow and lossy.
+Repeat 5–10 times. Your agent is powerful — but **blind**. It can't see the browser, so you become the middleman between the AI and your running app.
+
+This loop kills productivity.
 
 ## The Solution
 
