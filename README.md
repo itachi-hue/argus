@@ -109,14 +109,25 @@ Works with **Cursor** · **Claude Code** · **Claude Desktop** · **Windsurf** �
 
 ## Quick Start
 
-### 1. Install the MCP Server
+**Prerequisites:** Python 3.11+, Node.js 18+, Chrome, and an MCP-compatible IDE (Cursor, Claude Code, etc.)
+
+### 1. Clone & Install
 
 ```bash
+git clone https://github.com/user/argus.git
+cd argus
+
+# Server
 cd server
 pip install -e .
+
+# Extension
+cd ../extension
+npm install
+npm run build
 ```
 
-### 2. Connect to Your AI Agent
+### 2. Add to Your IDE
 
 Your IDE starts the Argus server automatically — no need to run anything in the terminal.
 
@@ -131,11 +142,13 @@ Add to `.cursor/mcp.json` (project) or `~/.cursor/mcp.json` (global):
     "argus": {
       "command": "python",
       "args": ["-m", "argus"],
-      "cwd": "/path/to/argus/server"
+      "cwd": "/absolute/path/to/argus/server"
     }
   }
 }
 ```
+
+> **Important:** Replace `/absolute/path/to/argus/server` with the actual path to the `server/` folder on your machine (e.g. `C:/Users/you/argus/server` on Windows or `/home/you/argus/server` on Linux/Mac).
 
 Restart Cursor. Look for **argus** with a green dot under **Settings → MCP**.
 </details>
@@ -144,7 +157,7 @@ Restart Cursor. Look for **argus** with a green dot under **Settings → MCP**.
 <summary><strong>Claude Code</strong></summary>
 
 ```bash
-claude mcp add argus -- python -m argus
+claude mcp add argus -- python -m argus --cwd /absolute/path/to/argus/server
 ```
 </details>
 
@@ -159,11 +172,13 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
     "argus": {
       "command": "python",
       "args": ["-m", "argus"],
-      "cwd": "/path/to/argus/server"
+      "cwd": "/absolute/path/to/argus/server"
     }
   }
 }
 ```
+
+> Replace `/absolute/path/to/argus/server` with the actual path.
 </details>
 
 <details>
@@ -172,7 +187,7 @@ Add to `claude_desktop_config.json` (Settings → Developer → Edit Config):
 **stdio** (local, default):
 ```
 command: python -m argus
-working directory: /path/to/argus/server
+working directory: /absolute/path/to/argus/server
 ```
 
 **SSE** (remote):
@@ -182,24 +197,20 @@ ARGUS_TRANSPORT=sse python -m argus
 ```
 </details>
 
-### 3. Install the Chrome Extension
+### 3. Load the Chrome Extension
 
-```bash
-cd extension
-npm install
-npm run build
-```
-
-1. Open `chrome://extensions`
-2. Enable **Developer mode**
+1. Open `chrome://extensions` in Chrome
+2. Enable **Developer mode** (toggle in top-right)
 3. Click **Load unpacked** → select the `extension/` folder
 
-### 4. Connect Extension to Server
+### 4. Connect
 
 1. Open any page in Chrome (e.g. your app at `localhost:3000`)
 2. Click the Argus extension icon → **Connect**
 
-That's it. The extension auto-detects the server and connects instantly. If auto-connect isn't available (e.g. another extension already claimed it), expand **Manual setup** in the popup to paste a token from **http://127.0.0.1:42777/api/pair**.
+That's it. The extension auto-detects the running server and connects instantly.
+
+> If auto-connect isn't available (e.g. another extension already claimed it), expand **Manual setup** in the popup to paste a token from `http://127.0.0.1:42777/api/pair`.
 
 ### 5. Use It
 
