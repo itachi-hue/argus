@@ -12,7 +12,7 @@
   <a href="https://github.com/itachi-hue/argus/actions/workflows/test.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/test.yml/badge.svg" alt="Tests" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/lint.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/lint.yml/badge.svg" alt="Lint" /></a>
   <a href="https://github.com/itachi-hue/argus/actions/workflows/build.yml"><img src="https://github.com/itachi-hue/argus/actions/workflows/build.yml/badge.svg" alt="Build" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/license-BSL_1.1-orange.svg" alt="BSL 1.1" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT" /></a>
   <img src="https://img.shields.io/badge/MCP-compatible-purple.svg" alt="MCP Compatible" />
 </p>
 
@@ -286,4 +286,4 @@ npm run watch                 # dev mode with auto-rebuild
 
 ## License
 
-Business Source License 1.1 — © 2026 Vivek Rao. Free for non-commercial use. Commercial use requires a license. Converts to Apache 2.0 on March 14, 2030. See [LICENSE](LICENSE) for details.
+MIT License — © 2026 Vivek Rao. See [LICENSE](LICENSE) for details.
